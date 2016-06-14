@@ -1,4 +1,4 @@
-__includes ["movement.nls" "command.nls" "sat-os.nls"]
+__includes ["movement.nls" "command.nls" "sat-os.nls" "ant.nls" ]
 
 extensions [ csv table ]
 
@@ -250,8 +250,12 @@ to go
   ask sats [
     configure-settings
     ask my-system [
-      process-commands
-      execute
+      if length command-queue > 0 [
+        process-commands
+      ]
+      if table:length work-queue > 0 [
+        execute
+      ]
     ]
     refresh-downlinks
     let old-lat lat
@@ -274,15 +278,22 @@ end
 to communicate-up
   let commands table:make
   ;ground
-  ask end1 [ set commands requested-commands ]
+  ask end1 [
+    set commands requested-commands
+  ]
   ;satellite os
   if table:length commands > 0 [
+    let ID 0
     ask end2 [
       ask my-system [
-        if table:has-key? commands table:get sat-data "ID" [
-          listen-commands table:get commands table:get sat-data "ID"
+        set ID table:get sat-data "ID"
+        if table:has-key? commands ID [
+          listen-commands (table:get commands ID )
         ]
       ]
+    ]
+    ask end1 [
+      table:remove requested-commands ID
     ]
   ]
 end
@@ -294,6 +305,7 @@ to communicate-down
   ;satellite os
   ask end1 [ ask my-system [ set output-table transfer-output ] ]
   ;ground
+
   if table:length output-table > 0 [
     ask end2
     [
@@ -308,6 +320,9 @@ to communicate-down
         ]
       ]
     ]
+    ask end1 [
+      ask my-system [ show CLEAR_OUTPUT ]
+    ]
   ]
 end
 
@@ -320,7 +335,11 @@ to request-commands [ the-commands ]
     let sat item 0 ?
     let ID (word ground-ID current-process-ID)
     let command (word ground-ID " " current-process-ID " " item 1 ?)
-    table:put requested-commands sat command
+    let existing-commands []
+    if table:has-key? requested-commands sat [
+       set existing-commands table:get requested-commands sat
+    ]
+    table:put requested-commands sat (sentence existing-commands command)
     table:put command-archive ID list sat command
     set current-process-ID current-process-ID + 1
   ]

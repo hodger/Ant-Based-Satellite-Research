@@ -23,12 +23,15 @@ to update-var [ arg ]
 end
 
 to listen-commands [ arg ]
+  show "listening to commands"
   set command-queue (sentence command-queue arg)
 end
 
 to process-commands
+  show "processing commands"
   foreach command-queue [
     let current parsed-command ?
+    show (word "processing " current)
     let ID item 0 current
     let instruction task [ runresult item 1 current ]
     table:put work-queue ID instruction
@@ -37,8 +40,10 @@ to process-commands
 end
 
 to execute
+  show "executing commands"
   foreach table:keys work-queue [
     let result runresult table:get work-queue ?
+    show (word "executing " ?)
     ifelse is-reporter-task? result [
       ;reinsert task into work queue if incomplete
       table:put work-queue ? result
@@ -52,9 +57,8 @@ to execute
 end
 
 to-report transfer-output
-  let tmp output-queue
-  table:clear output-queue
-  report tmp
+  ;show "transfering output"
+  report output-queue
 end
 
 to solve-instruction [ in ]
@@ -124,6 +128,7 @@ to-report INSTRUMENT_AT [ lat-a long-a ]
 end
 
 to-report INSTRUMENT_OVER_DURATION [ how-many ]
+  if is-string? how-many [ set how-many read-from-string how-many ]
   report INSTRUMENT_OVER_DURATION_recursive how-many []
 end
 
