@@ -1,0 +1,65 @@
+;Move along an arc by a certain number of degrees.
+to move-by-deg [radius deg]
+  tilt-down deg / 2
+  let dist 2 * radius * sin (deg / 2)
+  fd dist
+  tilt-down deg / 2
+end
+
+to-report update-coor [ lat-a long-a bearing dist ]
+  let earth-deg-per-tick 360 / (earth-rot-time / scale) * tick-frac
+  
+  let lat-b asin(sin(lat-a) * cos(dist) + cos(lat-a) * sin(dist) * cos(bearing))
+  
+  let long-b long-a + atan (sin bearing * sin(dist) * cos(lat-a)) (cos(dist) - sin(lat-a) * sin(lat-b))
+  set long-b (long-b - earth-deg-per-tick)
+  if long-b > 180 [ set long-b (-1) * (360 - long-b) ]
+  report list lat-b long-b
+end
+
+to-report display-coor [ lat-a long-a ]
+  
+  let lat-degrees floor abs lat-a
+  let lat-decimal (abs lat-a) - lat-degrees
+  let lat-minutes (60 * lat-decimal)
+  let lat-seconds floor (60 * (lat-minutes - floor lat-minutes))
+  set lat-minutes floor lat-minutes
+  
+  let lat-dir "N"
+  if lat-a < 0 [ set lat-dir "S" ]
+  
+  let display-lat (word "(" lat-degrees "o " lat-minutes "'" lat-seconds "\"" lat-dir ")")
+  
+  let long-degrees floor abs long-a
+  let long-decimal (abs long-a) - long-degrees
+  let long-minutes (60 * long-decimal)
+  let long-seconds floor (60 * (long-minutes - floor long-minutes))
+  set long-minutes floor long-minutes
+  
+  let long-dir "E"
+  if long-a < 0 [ set long-dir "W" ]
+  
+  let display-long (word "(" long-degrees "o " long-minutes "'" long-seconds "\"" long-dir ")")
+  
+  report (word display-lat ", " display-long)
+end
+
+to-report degrees [ rad ]
+  report rad / (pi / 180)
+end
+
+to-report radians [ deg ]
+  report deg * (pi / 180)
+end
+
+to-report rheading-to-angle [ rad ]
+  report (pi / 2 - rad) mod (2 * pi)
+end
+
+to-report heading-to-angle [ deg ]
+  report (90 - deg) mod 360
+end
+
+to-report within-range [ dart target range ]
+  report ( dart >= (target - range) and dart <= (target + range) )
+end

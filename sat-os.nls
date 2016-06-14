@@ -1,0 +1,138 @@
+breed [ systems system ]
+
+systems-own [ my-sat
+              sat-data
+              command-queue
+              work-queue
+              output-queue ]
+
+to setup-system [ arg ]
+  set sat-data table:from-list arg
+  set command-queue []
+  set work-queue table:make
+  set output-queue table:make
+end
+
+to update-var [ arg ]
+  let key item 0 arg
+  let value item 1 arg
+  
+  if table:has-key? sat-data key [
+    table:put sat-data key value
+  ] 
+end
+
+to listen-commands [ arg ]
+  set command-queue (sentence command-queue arg)
+end
+
+to process-commands
+  foreach command-queue [
+    let current parsed-command ?
+    let ID item 0 current
+    let instruction task [ runresult item 1 current ]
+    table:put work-queue ID instruction
+    set command-queue remove-item 0 command-queue
+  ]
+end
+
+to execute
+  foreach table:keys work-queue [
+    let result runresult table:get work-queue ?
+    ifelse is-reporter-task? result [
+      ;reinsert task into work queue if incomplete
+      table:put work-queue ? result
+    ]
+    [
+      ;if we got a return value, remove task from work, send output to output-queue
+      table:remove work-queue ?
+      table:put output-queue ? result
+    ]
+  ]
+end
+
+to-report transfer-output
+  let tmp output-queue
+  table:clear output-queue
+  report tmp
+end
+
+to solve-instruction [ in ]
+  show in
+  show runresult in
+end
+
+; Operating system commands: 
+
+to-report RETURN [ var ]
+  ifelse table:has-key? sat-data var
+  [
+    report table:get sat-data var
+  ]
+  [
+    show (word "ERROR NO SUCH VARIABLE [ " var " ]")
+    report 0
+  ]
+end
+
+to-report ADJUST [ var value ]
+  if is-string? value [ set value read-from-string value ]
+  ifelse table:has-key? sat-data var
+  [
+    table:put sat-data var value
+    report 1 
+  ]
+  [
+    show (word "ERROR NO SUCH VARIABLE [ " var " ]")
+    report 0
+  ]
+end
+
+to-report ADD [ a b ]
+  if is-string? a [ set a read-from-string a ]
+  
+  if is-string? b [ set b read-from-string b ]
+  
+  report a + b
+end
+
+to-report CLEAR_COMMAND
+  set command-queue []
+  report 1
+end
+
+to-report CLEAR_WORK
+  table:clear work-queue
+  report 1
+end
+
+to-report CLEAR_OUTPUT
+  table:clear output-queue
+  report 1
+end
+
+to-report INSTRUMENT_AT [ lat-a long-a ]
+  if is-string? lat-a [ set lat-a read-from-string lat-a ]
+  if is-string? long-a [ set long-a read-from-string long-a ]
+  
+  ifelse (within-range lat-a table:get sat-data "LAT" 30) and (within-range long-a table:get sat-data "LONG" 30) [
+    report random 100
+  ]
+  [
+    report task [ INSTRUMENT_AT lat-a long-a ]
+  ]
+end
+
+to-report INSTRUMENT_OVER_DURATION [ how-many ]
+  report INSTRUMENT_OVER_DURATION_recursive how-many []
+end
+
+to-report INSTRUMENT_OVER_DURATION_recursive [ how-many recordings ] 
+  let current random 100
+  ifelse (how-many - 1) = 0 [
+    report (sentence recordings current) 
+  ]
+  [
+    report task [ INSTRUMENT_OVER_DURATION_recursive (how-many - 1) (sentence recordings current) ]
+  ]
+end 

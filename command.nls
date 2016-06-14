@@ -1,0 +1,82 @@
+globals [ arg-table ]
+
+to-report parsed-command [ command ]
+  let initial []
+  let parsed []
+  let i 0
+  let last-delim -1
+  set arg-table table:make
+    table:put arg-table "CLEAR_COMMAND" 0
+    table:put arg-table "CLEAR_WORK" 0
+    table:put arg-table "CLEAR_OUTPUT" 0
+    table:put arg-table "RETURN" 1
+    table:put arg-table "ADJUST" 2
+    table:put arg-table "ADD" 2
+    table:put arg-table "INSTRUMENT_OVER_DURATION" 1
+    table:put arg-table "INSTRUMENT_AT" 2
+  
+  while [i < (length command)]
+  [ 
+    ifelse item i command = " " 
+    [ 
+      set initial (sentence initial substring command (last-delim + 1) i)
+      set last-delim i
+    ]
+    [
+     if i = (length command - 1) [
+       set initial (sentence initial substring command (last-delim + 1) (i + 1))   
+     ] 
+    ]
+    set i (i + 1) 
+  ]
+  
+  let ID (word item 0 initial item 1 initial)
+  let final ""
+  ;first two elements are ground ID and process ID
+  let n 2
+  while [n < length initial]
+  [
+    let current-word item n initial
+    if (not table:has-key? arg-table current-word) and (is-string? current-word)
+    [
+      set current-word (word "\"" current-word "\"") 
+    ]
+    set final (word final current-word " ")
+    set n n + 1
+  ]
+  
+;  set i (length initial) - 1
+;  let n 0
+;  let num-args 0
+;  let inner []
+  
+;  while [i >= 0]
+;  [
+;     let current-word item i initial
+;     ifelse table:has-key? arg-table current-word
+;     [
+;       set num-args table:get arg-table current-word
+;       ifelse num-args > 0 
+;       [
+;         set n 0
+;         set inner []
+;         while [n <= num-args] 
+;         [
+;           set inner lput (item i initial) inner
+;           set initial remove-item i initial
+;           set n (n + 1)
+;         ]
+;         set initial lput inner initial
+;         set parsed fput inner parsed
+;       ]
+;       [
+;         set parsed fput current-word parsed 
+;       ]
+;     ]
+;     [
+;       set initial replace-item i initial (word "\\" "\"" current-word "\\" "\"")  
+;     ]
+;     set i (i - 1)
+;  ]
+  report list ID final
+end
