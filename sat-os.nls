@@ -4,13 +4,15 @@ systems-own [ my-sat
               sat-data
               command-queue
               work-queue
-              output-queue ]
+              output-queue 
+              command-archive ]
 
 to setup-system [ arg ]
   set sat-data table:from-list arg
   set command-queue []
   set work-queue table:make
   set output-queue table:make
+  set command-archive table:make
 end
 
 to update-var [ arg ]
@@ -33,7 +35,10 @@ to process-commands
     let current parsed-command ?
     show (word "processing " current)
     let ID item 0 current
-    let instruction task [ runresult item 1 current ]
+    let command item 1 current
+    ;update our archive
+    table:put command-archive ID command
+    let instruction task [ runresult command ]
     table:put work-queue ID instruction
     set command-queue remove-item 0 command-queue
   ]
@@ -57,7 +62,11 @@ to execute
 end
 
 to-report transfer-output
-  ;show "transfering output"
+  foreach table:keys output-queue [
+    let output table:get output-queue ?
+    let command table:get command-archive ?
+    table:put command-archive ? list command output
+  ]
   report output-queue
 end
 

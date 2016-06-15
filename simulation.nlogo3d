@@ -35,7 +35,7 @@ sats-own [ name  ;string
 
            my-system ;sat-os agent
 
-           tag coor-shown noheight? noname? nocoor? ]  ;string, string bool, bool, bool
+           tag coor-shown noheight? noname? nocoor? noid?]  ;string, string bool, bool, bool
                                                         ;used for properly creating info
                                                         ;string to display above agent.
 
@@ -86,8 +86,6 @@ to setup-sats
   create-sats satnum [
     let csv-data csv:from-row file-read-line
     set name item 0 csv-data
-    ;we haven't yet set the label for name
-    set noname? true
 
     set sat-ID item 25 csv-data
     if is-string? sat-ID
@@ -97,10 +95,13 @@ to setup-sats
     if is-string? circ-radius
       [set circ-radius (read-from-string remove "," circ-radius)]
 
-    ;we haven't set the label for height
+    ;label variables
+    set noname? true
     set noheight? true
     set nocoor? true
+    set noid? true
     set tag ""
+
     set period item 14 csv-data
     set inclination item 13 csv-data
 
@@ -351,9 +352,7 @@ to refresh-uplinks
   let visible other sats in-cone cone-dist cone-angle with [freq = [freq] of myself]
   let new-list []
   ask visible [
-    if show-connections-as-links? [
-      create-uplink-from myself
-    ]
+    create-uplink-from myself
     if not member? self [connected-sats] of myself [
       show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
@@ -362,9 +361,7 @@ to refresh-uplinks
   let current-ground self
   foreach connected-sats [
     if not member? ? visible [
-      if show-connections-as-links? [
-        ask uplink [who] of current-ground [who] of ? [ die ]
-      ]
+      ask uplink [who] of current-ground [who] of ? [ die ]
       show (word "UPLINK LOST: " [name] of self " -X-> " [name] of ?)
     ]
   ]
@@ -378,9 +375,7 @@ to refresh-downlinks
   let visible other grounds in-cone cone-dist cone-angle with [freq = [freq] of myself]
   let new-list []
   ask visible [
-    if show-connections-as-links? [
-      create-downlink-from myself
-    ]
+    create-downlink-from myself
     if not member? self [connected-grounds] of myself [
       show (word "DOWNLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
@@ -389,9 +384,7 @@ to refresh-downlinks
   let current-sat self
   foreach connected-grounds [
     if not member? ? visible [
-      if show-connections-as-links? [
-        ask downlink [who] of current-sat [who] of ? [ die ]
-      ]
+      ask downlink [who] of current-sat [who] of ? [ die ]
       show (word "DOWNLINK LOST: " [name] of self " -X-> " [name] of ?)
     ]
   ]
@@ -416,17 +409,20 @@ to configure-settings
     [set tag remove (word (circ-radius * scale) " | ") tag
      set noheight? true]
 
-  ifelse show-coor? [
-    if nocoor? [
-      set coor-shown display-coor lat long
-      set tag (word tag coor-shown " | ")
-      set nocoor? false
-    ]
-  ]
-  [
-    set tag remove (word coor-shown " | ") tag
-    set nocoor? true
-  ]
+  ifelse show-coor?
+    [if nocoor?
+      [set coor-shown display-coor lat long
+       set tag (word tag coor-shown " | ")
+       set nocoor? false]]
+    [set tag remove (word coor-shown " | ") tag
+     set nocoor? true]
+
+  ifelse show-id?
+    [if noid?
+      [set tag (word tag sat-ID " | ")
+       set noid? false]]
+    [set tag remove (word sat-ID " | ") tag
+     set noid? true]
 
   set label tag
 end
@@ -474,7 +470,7 @@ Number
 BUTTON
 19
 26
-171
+170
 67
 NIL
 setup
@@ -491,7 +487,7 @@ NIL
 SWITCH
 17
 318
-173
+126
 351
 show-name?
 show-name?
@@ -502,7 +498,7 @@ show-name?
 SWITCH
 17
 358
-174
+126
 391
 show-height?
 show-height?
@@ -550,23 +546,23 @@ groundnum
 Number
 
 SWITCH
-18
-437
-200
-470
-show-connections-as-links?
-show-connections-as-links?
-0
+133
+318
+237
+351
+show-coor?
+show-coor?
+1
 1
 -1000
 
 SWITCH
-18
-397
-161
-430
-show-coor?
-show-coor?
+133
+358
+237
+391
+show-id?
+show-id?
 1
 1
 -1000
