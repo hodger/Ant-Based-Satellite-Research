@@ -57,7 +57,7 @@ grounds-own [ name; string
 
               requested-commands ;table, satellite NORAD number -> command string.
 
-              command-archive ;table, process ID -> [SAT, COMMAND, OUTPUT]
+              command-archive ;table, process ID -> [SAT, COMMAND, TIME-SENT, OUTPUT, TIME-RECEIVED]
 
               ground-ID ;float, randomized ID
 
@@ -315,7 +315,7 @@ to communicate-down
         ifelse table:has-key? command-archive ? [
           let command table:get command-archive ?
           let output table:get output-table ?
-          table:put command-archive ? (sentence command output)
+          table:put command-archive ? (sentence command output ticks)
         ]
         [
           show "Received unknown process ID. This should never happen."
@@ -336,13 +336,13 @@ to request-commands [ the-commands ]
   foreach the-commands [
     let sat item 0 ?
     let ID (word ground-ID current-process-ID)
-    let command (word ground-ID " " current-process-ID " " item 1 ?)
+    let command (word ground-ID " " current-process-ID " " ticks " " item 1 ?)
     let existing-commands []
     if table:has-key? requested-commands sat [
        set existing-commands table:get requested-commands sat
     ]
     table:put requested-commands sat (sentence existing-commands command)
-    table:put command-archive ID list sat command
+    table:put command-archive ID (list sat command ticks)
     set current-process-ID current-process-ID + 1
   ]
 end

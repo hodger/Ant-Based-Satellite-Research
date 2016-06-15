@@ -34,11 +34,17 @@ to process-commands
   foreach command-queue [
     let current parsed-command ?
     show (word "processing " current)
+    
     let ID item 0 current
-    let command item 1 current
+    let time-sent item 1 current
+    let command item 2 current
+    
     ;update our archive
-    table:put command-archive ID command
+    table:put command-archive ID (list command time-sent)
     let instruction task [ runresult command ]
+    
+    ;add receive time to output
+    table:put output-queue ID ticks
     table:put work-queue ID instruction
     set command-queue remove-item 0 command-queue
   ]
@@ -56,16 +62,23 @@ to execute
     [
       ;if we got a return value, remove task from work, send output to output-queue
       table:remove work-queue ?
-      table:put output-queue ? result
+      let existing []
+      if table:has-key? output-queue ? [ set existing table:get output-queue ? ]
+      table:put output-queue ? (sentence existing result)
     ]
   ]
 end
 
 to-report transfer-output
   foreach table:keys output-queue [
+    ;add ticks
+    let existing table:get output-queue ?
+    table:put output-queue ? (sentence existing ticks)
+    
+    ;update command-queue
     let output table:get output-queue ?
     let command table:get command-archive ?
-    table:put command-archive ? list command output
+    table:put command-archive ? (sentence command output)
   ]
   report output-queue
 end

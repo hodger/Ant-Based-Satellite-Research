@@ -1,5 +1,7 @@
 breed [ ants ant ]
 
+globals [ ant-dispatch-table ]
+
 ants-own [ my-system 
            
            threshold
@@ -16,7 +18,13 @@ ants-own [ my-system
            
            name ]
 
-to setup-deviation-ant [ sys stream a-name ]
+;static procedure
+to setup-ants [ sys stream a-name deviation ]
+  set ant-dispatch-table table:make
+  table:put ant-dispatch-table "deviation" task [ go-deviation ]
+end
+
+to setup-deviation-ant [ sys stream a-name deviation ]
   set my-system sys
   set name a-name
   set species "deviation"
@@ -28,6 +36,14 @@ to setup-deviation-ant [ sys stream a-name ]
     ]
   ]
   set average mean stream
-  set threshold standard-deviation stream
+  set threshold abs (standard-deviation stream) * deviation
 end
 
+to-report go-ant
+  let ret runresult table:get ant-dispatch-table species 
+  report ret  
+end
+
+to go-deviation
+  ifelse abs (average - data) > threshold [ report list true gps ] [ report list false gps ]
+end

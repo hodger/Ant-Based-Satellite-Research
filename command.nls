@@ -31,9 +31,10 @@ to-report parsed-command [ command ]
   ]
   
   let ID (word item 0 initial item 1 initial)
+  let time-sent item 2 initial
   let final ""
   ;first two elements are ground ID and process ID
-  let n 2
+  let n 3
   while [n < length initial]
   [
     let current-word item n initial
@@ -78,5 +79,5 @@ to-report parsed-command [ command ]
 ;     ]
 ;     set i (i - 1)
 ;  ]
-  report list ID final
+  report (list ID time-sent final)
 end
