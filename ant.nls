@@ -1,2 +1,33 @@
 breed [ ants ant ]
 
+ants-own [ my-system 
+           
+           threshold
+           
+           data
+           
+           gps
+           
+           average
+           
+           species
+           
+           risk-pieces
+           
+           name ]
+
+to setup-deviation-ant [ sys stream a-name ]
+  set my-system sys
+  set name a-name
+  set species "deviation"
+  ;if the stream is strings, we will use their lengths
+  if is-string? item 0 stream [
+    foreach n-values length stream [ ? ] [
+      let current item ? stream
+      set stream replace-item ? stream length current
+    ]
+  ]
+  set average mean stream
+  set threshold standard-deviation stream
+end
+

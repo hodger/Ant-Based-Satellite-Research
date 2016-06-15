@@ -1,6 +1,6 @@
 __includes ["movement.nls" "command.nls" "sat-os.nls" "ant.nls" ]
 
-extensions [ csv table ]
+extensions [ csv table array ]
 
 globals [ scale tick-frac-of-min earth-radius earth-rot-time comm-buffer sys-list]
 
@@ -36,8 +36,8 @@ sats-own [ name  ;string
            my-system ;sat-os agent
 
            tag coor-shown noheight? noname? nocoor? noid?]  ;string, string bool, bool, bool
-                                                        ;used for properly creating info
-                                                        ;string to display above agent.
+                                                            ;used for properly creating info
+                                                            ;string to display above agent.
 
 ;ground station variables
 grounds-own [ name; string
@@ -144,8 +144,9 @@ to setup-sats
       ]
     ifelse item 7 csv-data = "GEO"
       [;set is-geo? true
+       if long > 180 [ set long (-1) * (360 - long) ]
        set heading 0
-       rt long
+       lt long
        set roll 90
        lt inclination
        fd circ-radius
