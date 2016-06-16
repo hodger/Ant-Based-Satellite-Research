@@ -44,7 +44,7 @@ to process-commands
     let instruction task [ runresult command ]
     
     ;add receive time to output
-    table:put output-queue ID ticks
+    table:put output-queue ID get-time
     table:put work-queue ID instruction
     set command-queue remove-item 0 command-queue
   ]
@@ -73,7 +73,7 @@ to-report transfer-output
   foreach table:keys output-queue [
     ;add ticks
     let existing table:get output-queue ?
-    table:put output-queue ? (sentence existing ticks)
+    table:put output-queue ? (sentence existing get-time)
     
     ;update command-queue
     let output table:get output-queue ?

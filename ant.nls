@@ -2,7 +2,7 @@ breed [ ants ant ]
 
 globals [ ant-dispatch-table ]
 
-ants-own [ my-system 
+ants-own [ my-system
            
            threshold
            

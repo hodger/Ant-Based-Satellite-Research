@@ -63,3 +63,9 @@ end
 to-report within-range [ dart target range ]
   report ( dart >= (target - range) and dart <= (target + range) )
 end
+
+to-report get-time
+  let day floor (ticks * tick-frac) / (earth-rot-time / scale)
+  let sub-ticks (ticks * tick-frac) mod (earth-rot-time / scale)
+  report day + sub-ticks
+end
