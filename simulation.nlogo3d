@@ -1,4 +1,4 @@
-__includes ["movement.nls" "command.nls" "sat-os.nls" "ant.nls" ]
+__includes ["movement.nls" "command.nls" "sat-os.nls" "ant.nls" "environment.nls" ]
 
 extensions [ csv table array ]
 

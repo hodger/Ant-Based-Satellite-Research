@@ -1,6 +1,6 @@
-breed [ ants ant ]
-
 globals [ ant-dispatch-table ]
+
+breed [ ants ant ]
 
 ants-own [ my-system
            
@@ -18,14 +18,16 @@ ants-own [ my-system
            
            name
            
-           index 
+           index
            
            std-dev
            
-           num-deviations 
+           num-deviations
            
            ;do this thing
-           sum-of-squares]
+           sum-of-squares
+           
+           is-dispatched? ]
 
 ;static procedure
 to setup-ants [ sys stream a-name deviation ]
@@ -40,18 +42,31 @@ to setup-deviation-ant [ sys points a-name num-dev ]
   set species "deviation"
   set num-deviations num-dev
   ;if the stream is strings, we will use their lengths
-  let point-a item 0 points
-  let point-b item 1 points
-  if is-string? point-a [ set point-a length point-a ]
-  if is-string? point-b [ set point-b length point-b ]
   
-  set index 2
-  set average (point-a + point-b) / 2
-  set sum-of-squares (point-a - average) ^ 2 + (point-b - average) ^ 2
+  set index 0
+  set average 0
+  set sum-of-squares 0
+  let delta 0
   
-  ;find sample variance and then standard deviation.
+  foreach n-values length points [?] [
+    let current item ? points
+    if is-string? current [ 
+      set current length current
+      set points replace-item ? points current 
+    ]
+    set index index + 1
+    set delta current - average
+    set average average + (delta / index)
+    set sum-of-squares sum-of-squares + delta * (current - average)   
+  ]
   set std-dev sqrt (sum-of-squares / (index - 1))
   set threshold std-dev * num-deviations
+end
+
+to setup-location-ant [ sys points a-name ]
+  set my-system sys
+  set name a-name
+  set species "location"
   
 end
 
@@ -62,19 +77,18 @@ end
 
 to go-deviation
   ifelse abs (average - data) > threshold [ 
+    ;we found an abnormality
     report list true gps 
   ]
   [
+    ;system normal, reset detection criteria
     set index index + 1
     let delta data - average
     set average average + (delta / index)
     set sum-of-squares sum-of-squares + delta * (data - average)
     set std-dev sqrt (sum-of-squares / (index - 1))
-    
-    ;let old-average average
-    ;set average (old-average + ((data - old-average) / index))
-    ;set std-dev sqrt ((index - 2) / (index - 1) * (std-dev ^ 2) + (1 / index) * ((data - old-average) ^ 2)) 
-    ;set threshold std-dev * num-deviations
+    set threshold std-dev * num-deviations
+
     report list false gps
   ]
   
