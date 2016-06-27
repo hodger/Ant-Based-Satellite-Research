@@ -14,6 +14,7 @@ to-report parsed-command [ command ]
     table:put arg-table "ADD" 2
     table:put arg-table "INSTRUMENT_OVER_DURATION" 1
     table:put arg-table "INSTRUMENT_AT" 2
+    table:put arg-table "DUMMY" 0
   
   while [i < (length command)]
   [ 

@@ -2,10 +2,11 @@ __includes ["movement.nls" "command.nls" "sat-os.nls" "ant.nls" "environment.nls
 
 extensions [ csv table array ]
 
-globals [ scale tick-frac-of-min earth-radius earth-rot-time comm-buffer sys-list]
+globals [ scale tick-frac-of-min earth-radius earth-rot-time comm-buffer sys-list grounds-2d-list scale2d ]
 
 breed [ sats sat ]
 breed [ grounds ground ]
+breed [ grounds-2d ground-2d ]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -67,13 +68,20 @@ to setup
   clear-all
   file-close-all
   set scale 1000 ;Global to scale down kilometers and minutes
+  set scale2d 4
   set earth-radius (6371)
   set earth-rot-time (1437)
   set comm-buffer 2
   random-seed 586878
+
   create-systems satnum [ ]
   set sys-list []
   ask systems [ set sys-list lput self sys-list ]
+
+  create-grounds-2d groundnum [ ]
+  set grounds-2d-list []
+  ask grounds-2d [ set grounds-2d-list lput self grounds-2d-list ]
+
   setup-sats
   ask sats [  ]
   setup-ground
@@ -181,8 +189,8 @@ to setup-sats
         set heading 0
         set draw-long table:get sat-data "LONG"
         set draw-lat table:get sat-data "LAT"
-        set xcor table:get sat-data "LONG" / 4
-        set ycor table:get sat-data "LAT" / 4
+        set xcor table:get sat-data "LONG" / scale2d
+        set ycor table:get sat-data "LAT" / scale2d
         set color white
         pen-down
       ]
@@ -197,12 +205,12 @@ end
 to setup-ground
   file-open "groundstations.csv" ;test data
   let waste csv:from-row file-read-line ;gets rid of the first line (column definitions)
+  let grounds-2d-count 0
   create-grounds groundnum [
     set shape "box"
     set color white
     let csv-data csv:from-row file-read-line
     set name item 0 csv-data
-    set lat item 1 csv-data
 
     set freq 10
     set cone-dist 50
@@ -216,17 +224,21 @@ to setup-ground
     set ground-ID random 10000
     set current-process-ID 0
 
+    set lat item 1 csv-data
     if is-string? lat
       [ifelse lat = ""
         [set lat 0 show (word name " has no lat. Setting to 0")]
         [set lat read-from-string remove "," lat]
       ]
+    ;if lat > 90 [ set lat (-1) * (180 - lat) ]
+
     set long item 2 csv-data
     if is-string? long
       [ifelse long = ""
         [set long 0 show (word name " has no long. Setting to 0")]
         [set long read-from-string (remove "," long)]
       ]
+    ;if long > 180 [ set long (-1) * (360 - long) ]
 
     set circ-radius abs (earth-radius / scale * cos ( lat ) )
 
@@ -234,13 +246,23 @@ to setup-ground
     set deg-per-tick deg-per-min * tick-frac
 
     set heading 0
-    rt long
+    lt long
     tilt-up lat
     set roll 90
     fd earth-radius / scale
     tilt-down 90
     set roll 90
     ;pen-down
+
+    ;2d plotting procedures
+    ask item grounds-2d-count grounds-2d-list  [
+       set shape "target"
+       set color red
+       set zcor 49
+       set xcor [long] of myself / scale2d
+       set ycor [lat] of myself / scale2d
+    ]
+    set grounds-2d-count grounds-2d-count + 1
   ]
   file-close
 end
@@ -276,23 +298,12 @@ to go
     let new-coors update-coor old-lat old-long old-bear deg-per-tick
     set lat item 0 new-coors
     set long item 1 new-coors
-    ask my-system [ update-var list "LAT" [lat] of myself
-                    update-var list "LONG" [long] of myself
-                    set draw-long [long] of myself
-                    set draw-lat [lat] of myself
-                    facexyz [long] of myself / 4 [lat] of myself / 4 zcor
-                    ;set xcor [long] of myself / 4
-                    ;set ycor [lat] of myself / 4 ]
-                    let move-dist get-dist (list xcor ycor) (list ([long] of myself / 4) ([lat] of myself / 4))
-                    ifelse move-dist > 10 [
-                      pen-up
-                      fd move-dist
-                      pen-down
-                    ]
-                    [
-                      fd move-dist
-                    ]
+    ask my-system [
+       update-var list "LAT" [lat] of myself
+       update-var list "LONG" [long] of myself
 
+       ;2d plotting
+       move
      ]
    ]
   ask grounds [
@@ -407,6 +418,7 @@ to refresh-downlinks
     ]
     set new-list lput self new-list
   ]
+  ifelse length connected-grounds > 0 [ ask my-system [ set color green ] ] [ ask my-system [ set color white ] ]
   let current-sat self
   foreach connected-grounds [
     if not member? ? visible [

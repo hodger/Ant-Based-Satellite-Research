@@ -90,6 +90,25 @@ to solve-instruction [ in ]
   show runresult in
 end
 
+;2d plotting procedures
+
+to move
+  set draw-long table:get sat-data "LONG"
+  set draw-lat table:get sat-data "LAT"
+  facexyz draw-long / scale2d draw-lat / scale2d zcor 
+  ;set xcor [long] of myself / scale2d
+  ;set ycor [lat] of myself / scale2d ]
+  let move-dist get-dist (list xcor ycor) (list (draw-long / scale2d) (draw-lat / scale2d))
+  ifelse move-dist > 10 [
+    pen-up
+    fd move-dist
+    pen-down
+  ]
+  [
+    fd move-dist 
+  ] 
+end
+
 ; Operating system commands: 
 
 to-report RETURN [ var ]
