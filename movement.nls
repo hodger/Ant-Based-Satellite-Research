@@ -69,3 +69,7 @@ to-report get-time
   let sub-ticks (ticks * tick-frac) mod (earth-rot-time / scale)
   report day + sub-ticks
 end
+
+to-report get-dist [ point-a point-b ]
+  report sqrt ( ( item 0 point-b - item 0 point-a ) ^ 2 + ( item 1 point-b - item 1 point-a ) ^ 2 )
+end

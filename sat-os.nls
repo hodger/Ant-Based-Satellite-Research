@@ -5,7 +5,9 @@ systems-own [ my-sat
               command-queue
               work-queue
               output-queue 
-              command-archive ]
+              command-archive
+              draw-long
+              draw-lat ]
 
 to setup-system [ arg ]
   set sat-data table:from-list arg

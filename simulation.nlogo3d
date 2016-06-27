@@ -1,4 +1,4 @@
-__includes ["movement.nls" "command.nls" "sat-os.nls" "ant.nls" "environment.nls" ]
+__includes ["movement.nls" "command.nls" "sat-os.nls" "ant.nls" "environment.nls"]
 
 extensions [ csv table array ]
 
@@ -71,10 +71,11 @@ to setup
   set earth-rot-time (1437)
   set comm-buffer 2
   random-seed 586878
-  create-systems satnum [ hide-turtle ]
+  create-systems satnum [ ]
   set sys-list []
   ask systems [ set sys-list lput self sys-list ]
   setup-sats
+  ask sats [  ]
   setup-ground
   reset-ticks
 end
@@ -176,6 +177,14 @@ to setup-sats
                            (list "LONG" [long] of myself)
                            (list "FREQ" [freq] of myself)
                            (list "ID" [sat-ID] of myself))
+        set zcor 49
+        set heading 0
+        set draw-long table:get sat-data "LONG"
+        set draw-lat table:get sat-data "LAT"
+        set xcor table:get sat-data "LONG" / 4
+        set ycor table:get sat-data "LAT" / 4
+        set color white
+        pen-down
       ]
       set sys-count sys-count + 1
   ]
@@ -268,8 +277,24 @@ to go
     set lat item 0 new-coors
     set long item 1 new-coors
     ask my-system [ update-var list "LAT" [lat] of myself
-                    update-var list "LONG" [long] of myself ]
-  ]
+                    update-var list "LONG" [long] of myself
+                    set draw-long [long] of myself
+                    set draw-lat [lat] of myself
+                    facexyz [long] of myself / 4 [lat] of myself / 4 zcor
+                    ;set xcor [long] of myself / 4
+                    ;set ycor [lat] of myself / 4 ]
+                    let move-dist get-dist (list xcor ycor) (list ([long] of myself / 4) ([lat] of myself / 4))
+                    ifelse move-dist > 10 [
+                      pen-up
+                      fd move-dist
+                      pen-down
+                    ]
+                    [
+                      fd move-dist
+                    ]
+
+     ]
+   ]
   ask grounds [
     move-by-deg circ-radius deg-per-tick
   ]
