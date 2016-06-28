@@ -1,0 +1,169 @@
+breed [ sats sat ]
+
+;sat variables
+sats-own [ name  ;string
+
+           sat-ID ;float, NORAD Number
+
+           circ-radius ;float, orbital radius
+
+           period  ;float
+
+           freq  ;float, transmission frequency
+
+           lat long  ;float, longitude for geosynchronous sats
+
+           inclination  ;float, degree difference between equatorial plane
+                        ;and sat orbit
+
+           deg-per-tick  ;float
+
+           connected-grounds  ;list, grounds with active downlink from this sat
+
+           cone-angle cone-dist  ;floats, determine size of cone in which sat
+                                 ;will find ground stations
+
+           my-system ;sat-os agent
+
+           tag coor-shown noheight? noname? nocoor? noid?]  ;string, string bool, bool, bool
+                                                            ;used for properly creating info
+                                                            ;string to display above agent.
+                                                            
+to setup-sats
+  create-systems satnum [ ]
+  set sys-list []
+  ask systems [ set sys-list lput self sys-list ]
+  
+  file-open "UCS_Satellite_Database_1-1-16.csv"
+  let waste csv:from-row file-read-line ;gets rid of the first line (column definitions)
+  let sys-count 0
+  create-sats satnum [
+    let csv-data csv:from-row file-read-line
+    set name item 0 csv-data
+
+    set sat-ID item 25 csv-data
+    if is-string? sat-ID
+      [set sat-ID (read-from-string remove "," sat-ID)]
+
+    set circ-radius item 11 csv-data
+    if is-string? circ-radius
+      [set circ-radius (read-from-string remove "," circ-radius)]
+
+    ;label variables
+    set noname? true
+    set noheight? true
+    set nocoor? true
+    set noid? true
+    set tag ""
+
+    set period item 14 csv-data
+    set inclination item 13 csv-data
+
+    ;communication variables
+    set freq 10
+    set cone-dist circ-radius / scale + comm-buffer
+    set cone-angle 30
+    set connected-grounds []
+
+    if is-string? inclination
+      [ifelse inclination = ""
+        [set inclination 0 show (word name " has no inclination. Setting to 0")]
+        [set inclination read-from-string remove "," inclination]
+      ]
+
+    if is-string? period
+      [ifelse period = ""
+        [set period (1437) show (word name " has no period. Setting to 35700")]
+        [set period (read-from-string remove "," period)]
+      ]
+
+    ;scale data points
+    set period period / scale
+    set circ-radius ( circ-radius / scale + earth-radius / scale)
+
+    ;determine degrees to travel each tick
+    let deg-per-min (360 / period)
+    set deg-per-tick deg-per-min * tick-frac
+
+    ;Use long and inclination to position satellites. We only know the long
+    ;for GEO sats, so they are easier to place. LEO sats are set to their
+    ;respective inclination and then randomly rotated.
+    if inclination > 90 [ set inclination (-1) * (90 - inclination) ]
+    set lat inclination
+    set long item 9 csv-data
+    if is-string? long
+      [ifelse long = ""
+        [set long 0 show (word name " has no long. Setting to 0")]
+        [set long read-from-string remove "," long]
+      ]
+    ifelse item 7 csv-data = "GEO"
+      [;set is-geo? true
+       if long > 180 [ set long (-1) * (360 - long) ]
+       set heading 0
+       lt long
+       set roll 90
+       lt inclination
+       fd circ-radius
+       tilt-down 90
+      ]
+      [;set is-geo? false
+       set long random 360
+       if long > 180 [ set long (-1) * (360 - long) ]
+       set heading 0
+       lt long
+       set roll 90
+       lt inclination
+       ;ifelse random 2 = 1
+       ;  [lt inclination]
+       ;  [rt inclination]
+       fd circ-radius
+       tilt-down 90
+      ]
+
+      ;OS setup
+
+      set my-system item sys-count sys-list
+      ask (item sys-count sys-list) [
+        set my-sat myself
+        setup-system (list (list "NAME" [name] of myself)
+                           (list "LAT" [lat] of myself)
+                           (list "LONG" [long] of myself)
+                           (list "FREQ" [freq] of myself)
+                           (list "ID" [sat-ID] of myself))
+        set zcor 49
+        set heading 0
+        set draw-long table:get sat-data "LONG"
+        set draw-lat table:get sat-data "LAT"
+        set xcor table:get sat-data "LONG" / scale2d
+        set ycor table:get sat-data "LAT" / scale2d
+        set color white
+        pen-down
+      ]
+      set sys-count sys-count + 1
+  ]
+  file-close
+end
+
+;sats procedure
+to refresh-downlinks
+  tilt-down 90
+  let visible other grounds in-cone cone-dist cone-angle with [freq = [freq] of myself]
+  let new-list []
+  ask visible [
+    create-downlink-from myself
+    if not member? self [connected-grounds] of myself [
+      show (word "DOWNLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
+    ]
+    set new-list lput self new-list
+  ]
+  ifelse length connected-grounds > 0 [ ask my-system [ set color green ] ] [ ask my-system [ set color white ] ]
+  let current-sat self
+  foreach connected-grounds [
+    if not member? ? visible [
+      ask downlink [who] of current-sat [who] of ? [ die ]
+      show (word "DOWNLINK LOST: " [name] of self " -X-> " [name] of ?)
+    ]
+  ]
+  set connected-grounds new-list
+  tilt-up 90
+end                                                     
