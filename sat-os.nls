@@ -102,7 +102,9 @@ to move
   ifelse move-dist > 10 [
     pen-up
     fd move-dist
-    pen-down
+    if trails-2d? [
+      pen-down
+    ]
   ]
   [
     fd move-dist 

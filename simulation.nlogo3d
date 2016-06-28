@@ -2,7 +2,7 @@ __includes ["sat.nls" "ground.nls" "movement.nls" "command.nls" "sat-os.nls" "an
 
 extensions [ csv table array ]
 
-globals [ scale tick-frac-of-min earth-radius earth-rot-time comm-buffer sys-list grounds-2d-list scale2d ]
+globals [ scale tick-frac-of-min earth-radius earth-rot-time comm-buffer sys-list grounds-2d-list scale2d freq-table]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -17,10 +17,30 @@ to setup
   set comm-buffer 2
   random-seed 586878
 
+  set freq-table table:make
   setup-sats
   setup-ground
-
+  generate-grounds
   reset-ticks
+end
+
+to generate-grounds
+  let num 0
+  foreach table:keys geo-coors [
+    let current-key ?
+    let current-list table:get geo-coors ?
+    foreach current-list [
+      manual-setup-ground (word "manual" num) item 0 ? item 1 ? table:get freq-table current-key
+      create-grounds-2d 1 [
+       set shape "target"
+       set color red
+       set zcor 49
+       set xcor item 0 ? / scale2d
+       set ycor item 1 ? / scale2d
+      ]
+      set num num + 1
+    ]
+  ]
 end
 
 ;Continuously-called procedure.
@@ -291,6 +311,39 @@ SWITCH
 391
 show-id?
 show-id?
+1
+1
+-1000
+
+MONITOR
+289
+33
+577
+78
+NIL
+table:to-list freq-table
+17
+1
+11
+
+MONITOR
+259
+106
+503
+151
+NIL
+table:to-list geo-coors
+17
+1
+11
+
+SWITCH
+16
+396
+122
+429
+trails-2d?
+trails-2d?
 1
 1
 -1000

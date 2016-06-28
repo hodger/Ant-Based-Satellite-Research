@@ -8,6 +8,8 @@ grounds-own [ name; string
 
               freq  ;float, transmission frequency
 
+              country  ;string
+              
               cone-angle cone-dist  ;floats, determine size of cone in which ground
                                     ;will detect sats
 
@@ -35,12 +37,16 @@ to setup-ground
   file-open "groundstations.csv" ;test data
   let waste csv:from-row file-read-line ;gets rid of the first line (column definitions)
   let grounds-2d-count 0
+  
   create-grounds groundnum [
     set shape "box"
     set color white
     let csv-data csv:from-row file-read-line
+    
     set name item 0 csv-data
-
+    set lat item 1 csv-data
+    set long item 2 csv-data
+    
     set freq 10
     set cone-dist 50
     set cone-angle 35
@@ -53,15 +59,13 @@ to setup-ground
     set ground-ID random 10000
     set current-process-ID 0
 
-    set lat item 1 csv-data
     if is-string? lat
       [ifelse lat = ""
         [set lat 0 show (word name " has no lat. Setting to 0")]
         [set lat read-from-string remove "," lat]
       ]
     ;if lat > 90 [ set lat (-1) * (180 - lat) ]
-
-    set long item 2 csv-data
+    
     if is-string? long
       [ifelse long = ""
         [set long 0 show (word name " has no long. Setting to 0")]
@@ -81,8 +85,7 @@ to setup-ground
     fd earth-radius / scale
     tilt-down 90
     set roll 90
-    ;pen-down
-
+    
     ;2d plotting procedures
     ask item grounds-2d-count grounds-2d-list  [
        set shape "target"
@@ -94,6 +97,40 @@ to setup-ground
     set grounds-2d-count grounds-2d-count + 1
   ]
   file-close
+end
+
+to manual-setup-ground [ a-name a-long a-lat a-freq ]
+  create-grounds 1 [
+    set shape "box"
+    set color white
+    
+    set name a-name
+    set long a-long
+    set lat a-lat
+    set freq a-freq
+    set cone-dist 50
+    set cone-angle 35
+    set connected-sats []
+    set requested-commands table:make
+    ;the format of the archive is to be [ID: [SAT, COMMAND]] initially.
+    ;however, once the output is transfered from the satellite,
+    ;the format will become [ID: [SAT, COMMAND, OUTPUT]]
+    set command-archive table:make
+    set ground-ID random 10000
+    set current-process-ID 0
+    set circ-radius abs (earth-radius / scale * cos ( lat ) )
+
+    let deg-per-min 360 / (earth-rot-time / scale)
+    set deg-per-tick deg-per-min * tick-frac
+
+    set heading 0
+    lt long
+    tilt-up lat
+    set roll 90
+    fd earth-radius / scale
+    tilt-down 90
+    set roll 90
+  ]
 end
 
 ;grounds procedure
