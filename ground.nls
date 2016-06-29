@@ -23,7 +23,7 @@ grounds-own [ name; string
 
               command-archive ;table, process ID -> [SAT, COMMAND, TIME-SENT, OUTPUT, TIME-RECEIVED]
 
-              *ant-queues  ;table, satellite -> [ list of ants ready to commit to satellite ]
+              ant-queues  ;table, satellite -> [ list of ants ready to commit to satellite ]
               
               ground-ID ;float, randomized ID
 
@@ -166,6 +166,7 @@ to refresh-uplinks
       show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
     set new-list lput self new-list
+    if not table:has-key? ant-queues self [ table:put ant-queues self [] ]
   ]
   let current-ground self
   foreach connected-sats [
