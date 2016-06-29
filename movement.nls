@@ -66,10 +66,19 @@ end
 
 to-report get-time
   let day floor (ticks * tick-frac) / (earth-rot-time / scale)
-  let sub-ticks (ticks * tick-frac) mod (earth-rot-time / scale)
-  report day + sub-ticks
+  let sub-ticks ticks mod earth-rot-time
+  report (word "day: " day " ticks: " sub-ticks)
 end
 
 to-report get-dist [ point-a point-b ]
   report sqrt ( ( item 0 point-b - item 0 point-a ) ^ 2 + ( item 1 point-b - item 1 point-a ) ^ 2 )
+end
+
+to-report haversine [ point-a point-b ]
+  let delta-lat (item 0 point-b) - (item 0 point-a)
+  let delta-long (item 1 point-b) - (item 1 point-a)
+  let a (sin (delta-lat / 2) * sin (delta-lat / 2)) + (cos item 0 point-a) * (cos item 0 point-b) * sin (delta-long / 2) * sin (delta-long / 2)
+  let c radians 2 * asin sqrt a
+  let d (earth-radius / scale) * c
+  report d
 end

@@ -1,8 +1,8 @@
-__includes ["sat.nls" "ground.nls" "movement.nls" "command.nls" "sat-os.nls" "ant.nls" "environment.nls"]
+__includes ["sat.nls" "ground.nls" "movement.nls" "command.nls" "sat-os.nls" "ant.nls" "sentinel.nls"]
 
-extensions [ csv table array ]
+extensions [ csv table array profiler ]
 
-globals [ scale tick-frac-of-min earth-radius earth-rot-time comm-buffer sys-list grounds-2d-list scale2d freq-table]
+globals [ scale tick-frac-of-min earth-radius earth-rot-time comm-buffer sys-list grounds-2d-list scale2d sats-by-height freq-table]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -18,6 +18,7 @@ to setup
   random-seed 586878
 
   set freq-table table:make
+  set sats-by-height table:make
   setup-sats
   setup-ground
   generate-grounds
@@ -316,10 +317,10 @@ show-id?
 -1000
 
 MONITOR
-289
-33
-577
-78
+260
+54
+548
+99
 NIL
 table:to-list freq-table
 17
@@ -329,7 +330,7 @@ table:to-list freq-table
 MONITOR
 259
 106
-503
+548
 151
 NIL
 table:to-list geo-coors
@@ -344,9 +345,20 @@ SWITCH
 429
 trails-2d?
 trails-2d?
-1
+0
 1
 -1000
+
+MONITOR
+259
+160
+539
+205
+NIL
+table:to-list sats-by-height
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?

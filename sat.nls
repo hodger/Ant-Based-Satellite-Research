@@ -105,14 +105,20 @@ to setup-sats
       table:put freq-table country freq-count
       set freq-count freq-count + 1 
     ]
-    set cone-dist circ-radius / scale + comm-buffer
-    set cone-angle 30
+    set cone-dist circ-radius / scale
+    set cone-angle 10
     set connected-grounds []
     
     ;scale data points
     set period period / scale
     set circ-radius ( circ-radius / scale + earth-radius / scale)
-
+    
+    let existing-sats []
+    if table:has-key? sats-by-height circ-radius [
+      set existing-sats table:get sats-by-height circ-radius 
+    ]
+    table:put sats-by-height circ-radius lput self existing-sats
+    
     ;determine degrees to travel each tick
     let deg-per-min (360 / period)
     set deg-per-tick deg-per-min * tick-frac
@@ -129,9 +135,9 @@ to setup-sats
        lt inclination
        fd circ-radius
        tilt-down 90
-       let existing []
-       if table:has-key? geo-coors country [ set existing table:get geo-coors country ]
-       table:put geo-coors country lput list long lat existing
+       let existing-coors []
+       if table:has-key? geo-coors country [ set existing-coors table:get geo-coors country ]
+       table:put geo-coors country lput list long lat existing-coors
       ]
       [;set is-geo? false
        set long random 360
@@ -164,7 +170,7 @@ to setup-sats
         set xcor table:get sat-data "LONG" / scale2d
         set ycor table:get sat-data "LAT" / scale2d
         set color white
-        ;pen-down
+        pen-down
       ]
       set sys-count sys-count + 1
   ]
@@ -174,7 +180,7 @@ end
 ;sats procedure
 to refresh-downlinks
   tilt-down 90
-  let visible other grounds in-cone cone-dist cone-angle with [freq = [freq] of myself]
+  let visible other grounds-in-cone with [freq = [freq] of myself]
   let new-list []
   ask visible [
     create-downlink-from myself
@@ -193,4 +199,17 @@ to refresh-downlinks
   ]
   set connected-grounds new-list
   tilt-up 90
-end                                                     
+end
+
+to-report grounds-in-cone
+  let inside (turtle-set)
+  let my-point list lat long
+  let current-height circ-radius - (earth-radius / scale)
+  let current-radius (current-height * tan (.5 * cone-angle))
+  ask grounds [ 
+    if (haversine (list lat long) my-point) <= current-radius [
+      set inside (turtle-set inside self)
+    ]
+  ]
+  report inside
+end                                           

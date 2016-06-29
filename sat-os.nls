@@ -10,6 +10,7 @@ systems-own [ my-sat
               draw-lat ]
 
 to setup-system [ arg ]
+  
   set sat-data table:from-list arg
   set command-queue []
   set work-queue table:make
@@ -99,7 +100,7 @@ to move
   ;set xcor [long] of myself / scale2d
   ;set ycor [lat] of myself / scale2d ]
   let move-dist get-dist (list xcor ycor) (list (draw-long / scale2d) (draw-lat / scale2d))
-  ifelse move-dist > 10 [
+  ifelse move-dist > 20 [
     pen-up
     fd move-dist
     if trails-2d? [

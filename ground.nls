@@ -23,6 +23,8 @@ grounds-own [ name; string
 
               command-archive ;table, process ID -> [SAT, COMMAND, TIME-SENT, OUTPUT, TIME-RECEIVED]
 
+              *ant-queues  ;table, satellite -> [ list of ants ready to commit to satellite ]
+              
               ground-ID ;float, randomized ID
 
               current-process-ID ]  ;float
@@ -49,7 +51,7 @@ to setup-ground
     
     set freq 10
     set cone-dist 50
-    set cone-angle 35
+    set cone-angle 5
     set connected-sats []
     set requested-commands table:make
     ;the format of the archive is to be [ID: [SAT, COMMAND]] initially.
@@ -90,6 +92,7 @@ to setup-ground
     ask item grounds-2d-count grounds-2d-list  [
        set shape "target"
        set color red
+       
        set zcor 49
        set xcor [long] of myself / scale2d
        set ycor [lat] of myself / scale2d
@@ -109,7 +112,7 @@ to manual-setup-ground [ a-name a-long a-lat a-freq ]
     set lat a-lat
     set freq a-freq
     set cone-dist 50
-    set cone-angle 35
+    set cone-angle 5
     set connected-sats []
     set requested-commands table:make
     ;the format of the archive is to be [ID: [SAT, COMMAND]] initially.
@@ -155,7 +158,7 @@ end
 ;grounds procedure
 to refresh-uplinks
   tilt-up 90
-  let visible other sats in-cone cone-dist cone-angle with [freq = [freq] of myself]
+  let visible sats-in-cone with [freq = [freq] of myself]
   let new-list []
   ask visible [
     create-uplink-from myself
@@ -173,4 +176,24 @@ to refresh-uplinks
   ]
   set connected-sats new-list
   tilt-down 90
+end
+
+;ground procedure
+to-report sats-in-cone 
+  let inside (turtle-set)
+  let my-point list lat long
+  foreach table:keys sats-by-height [
+    let current-height ?
+    let current-radius (current-height * tan (.5 * cone-angle))
+    let current-list table:get sats-by-height ?
+    foreach current-list [
+       ask ? [
+          if ((haversine (list lat long) my-point) <= current-radius) [
+            ;the turtle is inside the cone.
+            set inside (turtle-set inside self)
+          ]
+       ]
+    ]
+  ]
+  report inside
 end
