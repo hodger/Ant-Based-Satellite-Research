@@ -23,6 +23,12 @@ grounds-own [ name; string
 
               command-archive ;table, process ID -> [SAT, COMMAND, TIME-SENT, OUTPUT, TIME-RECEIVED]
 
+              my-sentinel  ;sentinel
+              
+              sat-pheromone-values  ;table, sat -> array of pheromones for each satellite
+              
+              total-pheromone-values  ;array, sum of each satellite pheromone value
+              
               ant-queues  ;table, satellite -> [ list of ants ready to commit to satellite ]
               
               ground-ID ;float, randomized ID
@@ -60,6 +66,7 @@ to setup-ground
     set command-archive table:make
     set ground-ID random 10000
     set current-process-ID 0
+    set ant-queues table:make
 
     if is-string? lat
       [ifelse lat = ""
@@ -119,6 +126,7 @@ to manual-setup-ground [ a-name a-long a-lat a-freq ]
     ;however, once the output is transfered from the satellite,
     ;the format will become [ID: [SAT, COMMAND, OUTPUT]]
     set command-archive table:make
+    set ant-queues table:make
     set ground-ID random 10000
     set current-process-ID 0
     set circ-radius abs (earth-radius / scale * cos ( lat ) )
@@ -166,7 +174,7 @@ to refresh-uplinks
       show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
     set new-list lput self new-list
-    if not table:has-key? ant-queues self [ table:put ant-queues self [] ]
+    if not table:has-key? [ant-queues] of myself who [ table:put [ant-queues] of myself who [] ]
   ]
   let current-ground self
   foreach connected-sats [
@@ -197,4 +205,20 @@ to-report sats-in-cone
     ]
   ]
   report inside
+end
+
+to decay-pheromones
+  
+end
+
+to update-total-pheromones 
+  foreach n-values array:length total-pheromone-values [?] [
+    let current-index ?
+    let current-count 0
+    foreach table:keys sat-pheromone-values [
+      let current-array table:get sat-pheromone-values ?
+      set current-count current-count + array:item current-array current-index 
+    ]
+    array:set total-pheromone-values current-index current-count
+  ]
 end

@@ -1,2 +1,19 @@
+globals [ pheromone-types ] 
+
 breed [sentinels sentinel]
 
+sentinels-own [ my-ground  ;ground
+                
+                context ]  ;rules that govern what sentinel perceives as irregular behavior for systems
+
+to setup-sentinel-network [sentinel-num]
+  
+  create-sentinels sentinel-num [
+    hide-turtle
+     
+  ]
+end
+
+to-report validate-report [ant-data]
+  report 0
+end
