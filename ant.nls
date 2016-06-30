@@ -99,9 +99,20 @@ to go-deviation
 end
 
 to choose-ground
-  
+  let base 0
+  let spinner array:from-list n-values total-pheromones [0]
+  ask grounds [
+     let current-pheromone-value array:item total-pheromone-values [pheromone-type] of myself 
+     foreach n-values current-pheromone-value [?] [
+       array:set spinner (base + ?) who
+     ]
+     set base current-pheromone-value
+  ]
+  let selected-ground array:item spinner (random total-pheromones)
+  set my-ground ground selected-ground
 end
 
+;need to update total pheromones before we call this.
 to choose-sat
   let base 0
   let current-total array:item total-pheromone-values pheromone-type
@@ -116,7 +127,7 @@ to choose-sat
       let current-pheromone-value array:item current-array [pheromone-type] of myself
       ;place the sat in our chooser as many times as it has pheromones of our type
       foreach n-values current-pheromone-value [?] [
-        array:set spinner (base + ?) ? 
+        array:set spinner (base + ?) current-sat 
       ]
       ;update the base variable to put values in the correct place next time
       set base current-pheromone-value   
@@ -147,6 +158,7 @@ to drop-pheromones [concentration]
   ask my-system [ set sat-node my-sat ]
   ask my-ground [
      let existing-pheromone-value array:item (table:get sat-pheromone-values sat-node) [pheromone-type] of myself
-     array:set (table:get sat-pheromone-values sat-node) [pheromone-type] of myself (existing-pheromone-value + concentration) 
+     array:set (table:get sat-pheromone-values sat-node) [pheromone-type] of myself (existing-pheromone-value + concentration)
+     update-total-pheromones
   ]
 end

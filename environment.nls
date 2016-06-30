@@ -1,4 +1,0 @@
-breed [environments environment]
-
-environments-own [ ant-list ]
-

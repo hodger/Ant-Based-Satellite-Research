@@ -1,3 +1,5 @@
+globals [ total-pheromones ]
+
 breed [ grounds ground ]
 breed [ grounds-2d ground-2d ]
 
@@ -67,6 +69,7 @@ to setup-ground
     set ground-ID random 10000
     set current-process-ID 0
     set ant-queues table:make
+    set sat-pheromone-values table:make
 
     if is-string? lat
       [ifelse lat = ""
@@ -127,6 +130,7 @@ to manual-setup-ground [ a-name a-long a-lat a-freq ]
     ;the format will become [ID: [SAT, COMMAND, OUTPUT]]
     set command-archive table:make
     set ant-queues table:make
+    set sat-pheromone-values table:make
     set ground-ID random 10000
     set current-process-ID 0
     set circ-radius abs (earth-radius / scale * cos ( lat ) )
@@ -175,6 +179,7 @@ to refresh-uplinks
     ]
     set new-list lput self new-list
     if not table:has-key? [ant-queues] of myself who [ table:put [ant-queues] of myself who [] ]
+    if not table:has-key? [sat-pheromone-values] of myself who [ table:put [sat-pheromone-values] of myself who [1 1 1] ]
   ]
   let current-ground self
   foreach connected-sats [
