@@ -170,7 +170,7 @@ to setup-sats
         set xcor table:get sat-data "LONG" / scale2d
         set ycor table:get sat-data "LAT" / scale2d
         set color white
-        pen-down
+        ;pen-down
       ]
       set sys-count sys-count + 1
   ]

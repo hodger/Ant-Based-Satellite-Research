@@ -70,6 +70,12 @@ to-report get-time
   report (word "day: " day " ticks: " sub-ticks)
 end
 
+to-report get-time-numerical
+  let day floor (ticks * tick-frac) / (earth-rot-time / scale)
+  let sub-ticks (ticks mod earth-rot-time) / earth-rot-time
+  report day + sub-ticks
+end
+
 to-report get-dist [ point-a point-b ]
   report sqrt ( ( item 0 point-b - item 0 point-a ) ^ 2 + ( item 1 point-b - item 1 point-a ) ^ 2 )
 end

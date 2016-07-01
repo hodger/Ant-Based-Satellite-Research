@@ -2,7 +2,14 @@ __includes ["sat.nls" "ground.nls" "movement.nls" "command.nls" "sat-os.nls" "an
 
 extensions [ csv table array profiler ]
 
-globals [ scale tick-frac-of-min earth-radius earth-rot-time comm-buffer sys-list grounds-2d-list scale2d sats-by-height freq-table]
+globals [ scale tick-frac-of-min
+          earth-radius earth-rot-time
+          comm-buffer
+          sys-list
+          grounds-2d-list
+          scale2d
+          sats-by-height freq-table
+          time time-numerical ]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -46,6 +53,8 @@ end
 
 ;Continuously-called procedure.
 to go
+  set time get-time
+  set time-numerical get-time-numerical
   ask uplinks [
     set color red
     communicate-up
@@ -56,6 +65,22 @@ to go
   ]
   ask grounds [
     refresh-uplinks
+  ]
+  ask ants [
+    ; tag-caution
+    ; this is where ants observe the satellite data
+    ; also ants not dispatched need to do their move
+    ifelse is-dispatched? [
+      go-ant
+    ]
+    [
+      move-ant
+    ]
+  ]
+  ask sentinels [
+     ; to-do
+     ; this is where the sentinels draw the pheromones and such
+     ; they ask their respective grounds to decay pheromones. or do it themselves. whatever
   ]
   ask sats [
     configure-settings
@@ -91,10 +116,15 @@ end
 
 ;uplink (satellite listen) procedure
 to communicate-up
+  ; tag-caution
+  ; handle ants being passed to satellites.
+
   let commands table:make
+  let ant-list []
   ;ground
   ask end1 [
     set commands requested-commands
+    set ant-list table:get ant-queues [who] of [end2] of myself
   ]
   ;satellite os
   if table:length commands > 0 [
@@ -111,11 +141,28 @@ to communicate-up
       table:remove requested-commands ID
     ]
   ]
+  ;if we have ants in queue, we set them to dispatched.
+  if length ant-list > 0 [
+    foreach ant-list [
+      ask ant ? [
+        ;don't reset ants time if they are already dispatched
+        if not is-dispatched? [
+          set is-dispatched? true
+          set time-dispatched time-numerical
+        ]
+      ]
+    ]
+  ]
 end
 
 ;downlink (ground listen) procedure
 ;does not yet write the output to console
 to communicate-down
+  ; tag-caution
+  ; handle ants coming back from the satellites, as well as communicating their reports.
+  ; do they need to stay on-board? we'll need to make sure they don't go up and just come
+  ; right back. We need them to stay on for a specified amount of time?
+
   let output-table table:make
   ;satellite os
   ask end1 [ ask my-system [ set output-table transfer-output ] ]
@@ -128,7 +175,7 @@ to communicate-down
         ifelse table:has-key? command-archive ? [
           let command table:get command-archive ?
           let output table:get output-table ?
-          table:put command-archive ? (sentence command output get-time)
+          table:put command-archive ? (sentence command output time)
         ]
         [
           show "Received unknown process ID. This should never happen."
@@ -137,6 +184,25 @@ to communicate-down
     ]
     ask end1 [
       ask my-system [ show CLEAR_OUTPUT ]
+    ]
+  ]
+  let ant-list table:get [ant-queues] of end2 [who] of end1
+  if length ant-list > 0 [
+    foreach ant-list [
+      ask ant ? [
+        if is-dispatched? [
+          if length results > 0 [
+            report-ant
+            set results []
+          ]
+          ; he has a chance to return
+          if time-numerical - time-dispatched > min-time-to-return [
+            ; to-do
+            ; implement some kind of smarter solution than flipping a coin
+            if random 2 = 1 [ set is-dispatched? false set time-dispatched time-numerical ]
+          ]
+        ]
+      ]
     ]
   ]
 end
@@ -208,7 +274,7 @@ ticks
 INPUTBOX
 18
 121
-173
+96
 181
 satnum
 25
@@ -284,10 +350,10 @@ tick-frac
 Number
 
 INPUTBOX
-17
-187
+101
+121
 172
-247
+181
 groundnum
 5
 1
@@ -359,6 +425,17 @@ table:to-list sats-by-height
 17
 1
 11
+
+INPUTBOX
+18
+186
+172
+246
+antnum
+0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -156,13 +156,13 @@ to request-commands [ the-commands ]
   foreach the-commands [
     let sat item 0 ?
     let ID (word ground-ID current-process-ID)
-    let command (word ground-ID " " current-process-ID " " get-time " " item 1 ?)
+    let command (word ground-ID " " current-process-ID " " time " " item 1 ?)
     let existing-commands []
     if table:has-key? requested-commands sat [
        set existing-commands table:get requested-commands sat
     ]
     table:put requested-commands sat (sentence existing-commands command)
-    table:put command-archive ID (list sat command get-time)
+    table:put command-archive ID (list sat command time)
     set current-process-ID current-process-ID + 1
   ]
 end
@@ -213,7 +213,8 @@ to-report sats-in-cone
 end
 
 to decay-pheromones
-  
+  ; to-do
+  ; must decay or everything will be ruined.
 end
 
 to update-total-pheromones 

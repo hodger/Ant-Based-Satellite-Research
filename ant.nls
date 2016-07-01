@@ -8,7 +8,7 @@ ants-own [ my-system
            
            threshold
            
-           data
+           variable
            
            gps
            
@@ -16,24 +16,17 @@ ants-own [ my-system
            
            pheromone-type
            
-           average
-           
            species
            
-           risk-pieces
+           ;risk-pieces
            
            name
            
-           index
+           average index std-dev num-deviations sum-of-squares
            
-           std-dev
+           is-dispatched?
            
-           num-deviations
-           
-           ;do this thing
-           sum-of-squares
-           
-           is-dispatched? ]
+           time-dispatched ]
 
 ;static procedure
 to setup-ants [ sys stream a-name deviation ]
@@ -42,11 +35,14 @@ to setup-ants [ sys stream a-name deviation ]
 end
 
 ;points is a list of two data points
-to setup-deviation-ant [ sys points a-name num-dev ]
+to setup-deviation-ant [ sys points a-name num-dev a-variable ]
   set my-system sys
   set name a-name
   set species "deviation"
+  set pheromone-type DEVIATION-PHEROMONE
+  set variable a-variable
   set num-deviations num-dev
+  set results []
   ;if the stream is strings, we will use their lengths
   
   set index 0
@@ -75,30 +71,45 @@ to setup-location-ant [ sys points a-name ]
   set species "location"
 end
 
-to-report go-ant
+to go-ant
   let ret runresult table:get ant-dispatch-table species 
-  report ret
+  if ret != false [ set results lput ret results ]
 end
 
-to go-deviation
-  ifelse abs (average - data) > threshold [ 
+to-report go-deviation
+  let current-value table:get [sat-data] of my-system variable
+  ifelse abs (average - current-value) > threshold [ 
     ;we found an abnormality
-    report list true gps 
+    report (list gps variable current-value) 
   ]
   [
     ;system normal, reset detection criteria
     set index index + 1
-    let delta data - average
+    let delta current-value - average
     set average average + (delta / index)
-    set sum-of-squares sum-of-squares + delta * (data - average)
+    set sum-of-squares sum-of-squares + delta * (current-value - average)
     set std-dev sqrt (sum-of-squares / (index - 1))
     set threshold std-dev * num-deviations
 
-    report list false gps
+    report false
   ]
 end
 
+to move-ant
+  ; to-do
+  ; maybe don't move?
+  choose-ground
+  choose-sat
+end
+
 to choose-ground
+  ;clear self from current ant-queue
+  ask my-ground [
+    let existing-ants table:get ant-queues [who] of [my-sat] of [my-system] of myself
+    let me [who] of myself
+    table:put ant-queues [who] of [my-sat] of [my-system] of myself remove me existing-ants 
+  ]
+  
   let base 0
   let spinner array:from-list n-values total-pheromones [0]
   ask grounds [
@@ -135,7 +146,8 @@ to choose-sat
      ;randomly select a satellite from the weighted chooser
     let selected-sat array:item spinner (random current-total)
     let existing-queue table:get ant-queues selected-sat 
-    table:put ant-queues selected-sat lput myself existing-queue
+    table:put ant-queues selected-sat lput ([who] of myself) existing-queue
+    set my-system [my-system] of selected-sat
   ]
 end
 

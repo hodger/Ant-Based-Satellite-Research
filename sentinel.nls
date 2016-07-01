@@ -1,4 +1,4 @@
-globals [ pheromone-types ] 
+globals [ pheromone-types pheromone-map min-time-to-return MARKOVIAN-PHEROMONE DEVIATION-PHEROMONE ] 
 
 breed [sentinels sentinel]
 
@@ -7,7 +7,11 @@ sentinels-own [ my-ground  ;ground
                 context ]  ;rules that govern what sentinel perceives as irregular behavior for systems
 
 to setup-sentinel-network [sentinel-num]
-  
+  ; to-do track pheromones
+  set pheromone-map table:make
+  set MARKOVIAN-PHEROMONE 0
+  set DEVIATION-PHEROMONE 1 
+  set min-time-to-return 50
   create-sentinels sentinel-num [
     hide-turtle
      
@@ -15,5 +19,11 @@ to setup-sentinel-network [sentinel-num]
 end
 
 to-report validate-report [ant-data]
+  ; to-do
+  ; gotta put pheromones at other satellites around
   report 0
+end
+
+to highlight-report
+  ;draw it on the gui
 end
