@@ -56,8 +56,8 @@ to setup-ground
     set name item 0 csv-data
     set lat item 1 csv-data
     set long item 2 csv-data
+    set freq item 3 csv-data
     
-    set freq 10
     set cone-dist 50
     set cone-angle 5
     set connected-sats []
@@ -84,7 +84,11 @@ to setup-ground
         [set long read-from-string (remove "," long)]
       ]
     ;if long > 180 [ set long (-1) * (360 - long) ]
-
+    
+    if is-string? freq [
+      set freq read-from-string freq 
+    ]
+    
     set circ-radius abs (earth-radius / scale * cos ( lat ) )
 
     let deg-per-min 360 / (earth-rot-time / scale)
@@ -215,6 +219,7 @@ end
 to decay-pheromones
   ; to-do
   ; must decay or everything will be ruined.
+  
 end
 
 to update-total-pheromones 

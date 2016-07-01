@@ -1,6 +1,6 @@
-Name,Latitude,Longitude
-TEST1,0,0
-TEST2,-50,25
-TEST3,20,-178
-TEST4,-30,90
-TEST5,30,30
+Name,Latitude,Longitude,Freq
+TEST1,0,0,0
+TEST2,-50,25,1
+TEST3,20,-178,2
+TEST4,-30,90,1
+TEST5,30,30,1

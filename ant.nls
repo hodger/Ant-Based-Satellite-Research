@@ -173,4 +173,7 @@ to drop-pheromones [concentration]
      array:set (table:get sat-pheromone-values sat-node) [pheromone-type] of myself (existing-pheromone-value + concentration)
      update-total-pheromones
   ]
+  let existing-times table:get pheromone-time-map sat-node
+  ;refresh when we last put down pheromones here.
+  table:put pheromone-time-map sat-node replace-item pheromone-type existing-times time-numerical
 end
