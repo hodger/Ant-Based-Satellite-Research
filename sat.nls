@@ -212,4 +212,39 @@ to-report grounds-in-cone
     ]
   ]
   report inside
-end                                           
+end
+
+;This procedure adds information to agents' labels based on the status of switches.
+;The information is displayed in the order that the switches are flipped.
+to configure-settings
+  ifelse show-name?
+    [if noname?
+      [set tag (word tag name " | ")
+       set noname? false]]
+    [set tag remove (word name " | ") tag
+     set noname? true]
+
+  ifelse show-height?
+    [if noheight?
+      [set tag (word tag (circ-radius * scale) " | ")
+       set noheight? false]]
+    [set tag remove (word (circ-radius * scale) " | ") tag
+     set noheight? true]
+
+  ifelse show-coor?
+    [if nocoor?
+      [set coor-shown display-coor lat long
+       set tag (word tag coor-shown " | ")
+       set nocoor? false]]
+    [set tag remove (word coor-shown " | ") tag
+     set nocoor? true]
+
+  ifelse show-id?
+    [if noid?
+      [set tag (word tag sat-ID " | ")
+       set noid? false]]
+    [set tag remove (word sat-ID " | ") tag
+     set noid? true]
+
+  set label tag
+end                                          
