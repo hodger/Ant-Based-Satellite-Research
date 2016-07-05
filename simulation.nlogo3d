@@ -1,4 +1,11 @@
-__includes ["sat.nls" "ground.nls" "movement.nls" "command.nls" "sat-os.nls" "ant.nls" "sentinel.nls"]
+__includes ["sat.nls"
+            "ground.nls"
+            "movement.nls"
+            "command.nls"
+            "sat-os.nls"
+            "ant.nls"
+            "sentinel.nls"
+            "supervisor.nls"]
 
 extensions [ csv table array profiler ]
 
@@ -29,6 +36,9 @@ to setup
   setup-sats
   setup-ground
   generate-grounds
+
+  setup-supervisor
+
   reset-ticks
 end
 
@@ -76,6 +86,9 @@ to go
     [
       move-ant
     ]
+    ;if ant is dispatched, draw it on satellite with a link to its ground
+    ;else, draw it on the ground station it currently resides on.
+    draw-ant
   ]
   ask sentinels [
      ; to-do
@@ -124,7 +137,7 @@ to communicate-up
   ;ground
   ask end1 [
     set commands requested-commands
-    set ant-list table:get ant-queues [who] of [end2] of myself
+    set ant-list table:get [ant-queues] of my-sentinel [who] of [end2] of myself
   ]
   ;satellite os
   if table:length commands > 0 [
@@ -186,7 +199,7 @@ to communicate-down
       ask my-system [ show CLEAR_OUTPUT ]
     ]
   ]
-  let ant-list table:get [ant-queues] of end2 [who] of end1
+  let ant-list table:get [ant-queues] of [my-sentinel] of end2 [who] of end1
   if length ant-list > 0 [
     foreach ant-list [
       ask ant ? [

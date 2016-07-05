@@ -1,17 +1,22 @@
-globals [ pheromone-types pheromone-time-map min-time-to-return MARKOVIAN-PHEROMONE DEVIATION-PHEROMONE ] 
+globals [ min-time-to-return ] 
 
 breed [sentinels sentinel]
 breed [markers marker]
 
 sentinels-own [ my-ground  ;ground
                 
+                sat-pheromone-values  ;table, sat -> array of pheromones for each satellite
+              
+                total-pheromone-values  ;array, sum of each satellite pheromone value
+              
+                ant-queues  ;table, satellite -> [ list of ants ready to commit to satellite ]
+                
+                participating  ;boolean
+                
                 context ]  ;rules that govern what sentinel perceives as irregular behavior for systems
 
 to setup-sentinel-network [sentinel-num]
-  ; to-do track pheromones
-  set pheromone-time-map table:make
-  set MARKOVIAN-PHEROMONE 0
-  set DEVIATION-PHEROMONE 1 
+  ; to-do track pheromones 
   set min-time-to-return 50
   create-sentinels sentinel-num [
     hide-turtle
@@ -34,5 +39,29 @@ to highlight-report [a-lat a-long]
     set heading 0
     set xcor a-long / scale2d
     set ycor a-lat / scale2d
+  ]
+end
+
+to drop-pheromones-at [a-sat a-type concentration]
+  let existing-pheromone-value array:item (table:get sat-pheromone-values a-sat) a-type
+  let pheromone-array table:get sat-pheromone-values a-sat
+  array:set pheromone-array a-type (existing-pheromone-value + concentration)
+  update-total-pheromones
+  
+  let pheromone-times table:get pheromone-time-map a-sat
+  ;refresh when we last put down pheromones here.
+  set pheromone-times replace-item a-type pheromone-times time-numerical
+  table:put global-pheromone-map a-sat pheromone-array 
+end
+
+to update-total-pheromones 
+  foreach n-values array:length total-pheromone-values [?] [
+    let current-index ?
+    let current-count 0
+    foreach table:keys sat-pheromone-values [
+      let current-array table:get sat-pheromone-values ?
+      set current-count current-count + array:item current-array current-index 
+    ]
+    array:set total-pheromone-values current-index current-count
   ]
 end

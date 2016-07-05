@@ -1,0 +1,94 @@
+globals [ number-pheromones ; number, how many pheromone types
+          pheromone-time-map
+          global-pheromone-map
+          EVAPORATION-TIME
+          EVAPORATION-VALUE
+          MARKOVIAN-PHEROMONE
+          DEVIATION-PHEROMONE
+          total-pheromones ] ; array, sum all pheromones in the simulation.
+
+breed [ supervisors supervisor ]
+
+supervisors-own [
+  sentinel-list
+]
+
+to setup-supervisor
+  set number-pheromones 2
+  set total-pheromones array:from-list (n-values number-pheromones [0])
+  set EVAPORATION-TIME 25
+
+  ;copy grounds to a temporary agentset
+  let temp-grounds grounds
+  let temp-list []
+  
+  create-sentinels 18 [
+    ;hide-turtle
+    let current-ground one-of temp-grounds    
+    
+    ask current-ground [
+      set my-sentinel myself 
+    ]
+    
+    set my-ground current-ground
+    set shape "target"
+    set color red
+    set zcor 49
+    set xcor [long] of my-ground / scale2d
+    set ycor [lat] of my-ground / scale2d
+    set ant-queues table:make
+    set sat-pheromone-values table:make
+    set total-pheromone-values array:from-list n-values number-pheromones [0]
+    set participating true
+    
+    set temp-list lput self temp-list
+    ;remove ground we just used
+    set temp-grounds temp-grounds with [ self != current-ground ]
+  ]
+  
+  create-supervisors 1 [
+     ;hide-turtle
+     set sentinel-list temp-list
+     set pheromone-time-map table:make
+     set MARKOVIAN-PHEROMONE 0
+     set DEVIATION-PHEROMONE 1
+  ]
+end
+
+to update
+  foreach sentinel-list [
+    ;update total pheromones, for use when ants decide to do
+    foreach n-values array:length total-pheromone-values [?] [
+      let existing-pheromones array:item total-pheromones ?
+      let new-pheromones array:item total-pheromone-values ?
+      array:set total-pheromones ? (existing-pheromones + new-pheromones)
+    ]
+  ]
+end
+
+to decay-pheromones
+  ; to-do
+  ; must decay or everything will be ruined.
+  foreach table:keys pheromone-time-map [
+    let current-sat ?
+    let current-times table:get pheromone-time-map ?
+    let current-pheromones table:get global-pheromone-map current-sat
+    
+    foreach n-values number-pheromones [?] [
+      let current-value array:item current-pheromones ?
+      ;we don't need to evaporate if we're at the lowest pheromone value already.
+      if array:item current-pheromones ? > 1 [
+        if time-numerical - array:item current-times ? > EVAPORATION-TIME [
+          ;set the new pheromone value in the array
+          array:set current-pheromones ? current-value - EVAPORATION-VALUE
+          table:put global-pheromone-map current-sat current-pheromones
+          ;set the new time value in the array
+          array:set current-times ? time-numerical
+          table:put pheromone-time-map current-sat current-times
+        ] 
+      ]
+    ] 
+  ]
+end
+
+

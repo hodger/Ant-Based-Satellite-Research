@@ -1,4 +1,4 @@
-globals [ total-pheromones ]
+globals [ ]
 
 breed [ grounds ground ]
 breed [ grounds-2d ground-2d ]
@@ -25,17 +25,15 @@ grounds-own [ name; string
 
               command-archive ;table, process ID -> [SAT, COMMAND, TIME-SENT, OUTPUT, TIME-RECEIVED]
 
+              my-ground-2d  ;ground-2d
+              
               my-sentinel  ;sentinel
-              
-              sat-pheromone-values  ;table, sat -> array of pheromones for each satellite
-              
-              total-pheromone-values  ;array, sum of each satellite pheromone value
-              
-              ant-queues  ;table, satellite -> [ list of ants ready to commit to satellite ]
               
               ground-ID ;float, randomized ID
 
               current-process-ID ]  ;float
+
+grounds-2d-own [ label-text ]
 
 ;Ground stations are defined by their latitude and longitude on Earth. The are
 ;rotated and tilted to reach this position. Their movement is essentially a
@@ -68,9 +66,7 @@ to setup-ground
     set command-archive table:make
     set ground-ID random 10000
     set current-process-ID 0
-    set ant-queues table:make
-    set sat-pheromone-values table:make
-
+    
     if is-string? lat
       [ifelse lat = ""
         [set lat 0 show (word name " has no lat. Setting to 0")]
@@ -104,6 +100,7 @@ to setup-ground
     
     ;2d plotting procedures
     ask item grounds-2d-count grounds-2d-list  [
+       hide-turtle
        set shape "target"
        set color red
        
@@ -111,6 +108,7 @@ to setup-ground
        set xcor [long] of myself / scale2d
        set ycor [lat] of myself / scale2d
     ]
+    set my-ground-2d item grounds-2d-count grounds-2d-list
     set grounds-2d-count grounds-2d-count + 1
   ]
   file-close
@@ -133,8 +131,6 @@ to manual-setup-ground [ a-name a-long a-lat a-freq ]
     ;however, once the output is transfered from the satellite,
     ;the format will become [ID: [SAT, COMMAND, OUTPUT]]
     set command-archive table:make
-    set ant-queues table:make
-    set sat-pheromone-values table:make
     set ground-ID random 10000
     set current-process-ID 0
     set circ-radius abs (earth-radius / scale * cos ( lat ) )
@@ -182,8 +178,12 @@ to refresh-uplinks
       show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
     set new-list lput self new-list
-    if not table:has-key? [ant-queues] of myself who [ table:put [ant-queues] of myself who [] ]
-    if not table:has-key? [sat-pheromone-values] of myself who [ table:put [sat-pheromone-values] of myself who [1 1 1] ]
+    if not table:has-key? [ant-queues] of [my-sentinel] of myself who [ 
+      table:put [ant-queues] of [my-sentinel] of myself who [] 
+    ]
+    if not table:has-key? [sat-pheromone-values] of [my-sentinel] of myself who [
+      table:put [sat-pheromone-values] of [my-sentinel] of myself who [1 1] 
+    ]
   ]
   let current-ground self
   foreach connected-sats [
@@ -214,22 +214,4 @@ to-report sats-in-cone
     ]
   ]
   report inside
-end
-
-to decay-pheromones
-  ; to-do
-  ; must decay or everything will be ruined.
-  
-end
-
-to update-total-pheromones 
-  foreach n-values array:length total-pheromone-values [?] [
-    let current-index ?
-    let current-count 0
-    foreach table:keys sat-pheromone-values [
-      let current-array table:get sat-pheromone-values ?
-      set current-count current-count + array:item current-array current-index 
-    ]
-    array:set total-pheromone-values current-index current-count
-  ]
 end

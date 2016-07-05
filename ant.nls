@@ -4,7 +4,7 @@ breed [ ants ant ]
 
 ants-own [ my-system
            
-           my-ground
+           my-sentinel
            
            threshold
            
@@ -29,9 +29,13 @@ ants-own [ my-system
            time-dispatched ]
 
 ;static procedure
-to setup-ants [ sys stream a-name deviation ]
+to setup-ants [ sys stream a-name ]
   set ant-dispatch-table table:make
   table:put ant-dispatch-table "deviation" task [ go-deviation ]
+  create-ants antnum [
+    set color yellow
+    set zcor 49
+  ]
 end
 
 ;points is a list of two data points
@@ -95,32 +99,46 @@ to-report go-deviation
   ]
 end
 
+to draw-ant
+  ifelse is-dispatched? [
+    set xcor [xcor] of my-sentinel
+    set ycor [ycor] of my-sentinel
+    create-link-to my-sentinel 
+  ]
+  [
+    ask my-links [ die ]
+    set xcor [xcor] of my-sentinel
+    set ycor [ycor] of my-sentinel
+  ]
+  
+end
+
 to move-ant
   ; to-do
   ; maybe don't move?
-  choose-ground
+  choose-sentinel
   choose-sat
 end
 
-to choose-ground
+to choose-sentinel
   ;clear self from current ant-queue
-  ask my-ground [
+  ask my-sentinel [
     let existing-ants table:get ant-queues [who] of [my-sat] of [my-system] of myself
     let me [who] of myself
     table:put ant-queues [who] of [my-sat] of [my-system] of myself remove me existing-ants 
   ]
   
   let base 0
-  let spinner array:from-list n-values total-pheromones [0]
-  ask grounds [
+  let spinner array:from-list (n-values (array:item total-pheromones pheromone-type) [0])
+  ask sentinels [
      let current-pheromone-value array:item total-pheromone-values [pheromone-type] of myself 
      foreach n-values current-pheromone-value [?] [
        array:set spinner (base + ?) who
      ]
      set base current-pheromone-value
   ]
-  let selected-ground array:item spinner (random total-pheromones)
-  set my-ground ground selected-ground
+  let selected-sentinel array:item spinner (random array:item total-pheromones pheromone-type)
+  set my-sentinel sentinel selected-sentinel
 end
 
 ;need to update total pheromones before we call this.
@@ -129,7 +147,7 @@ to choose-sat
   let current-total array:item total-pheromone-values pheromone-type
   ;initialize weighted movement chooser
   let spinner array:from-list n-values current-total [0] 
-  ask my-ground [
+  ask my-sentinel [
     ;for every sat
     foreach table:keys sat-pheromone-values [
       ;get the sat, the array, and the current value
@@ -154,11 +172,9 @@ end
 to report-ant
   let me self
   let answer false
-  ask my-ground [
-    ask my-sentinel [
-       ;communicate with ant
-       set answer validate-report [results] of me
-    ] 
+  ask my-sentinel [
+    ;communicate with ant
+    set answer validate-report [results] of me
   ]
   if answer > 0 [
     drop-pheromones answer
@@ -168,7 +184,7 @@ end
 to drop-pheromones [concentration]
   let sat-node 0
   ask my-system [ set sat-node my-sat ]
-  ask my-ground [
+  ask my-sentinel [
      let existing-pheromone-value array:item (table:get sat-pheromone-values sat-node) [pheromone-type] of myself
      array:set (table:get sat-pheromone-values sat-node) [pheromone-type] of myself (existing-pheromone-value + concentration)
      update-total-pheromones
