@@ -46,7 +46,11 @@ to drop-pheromones-at [a-sat a-type concentration]
   let existing-pheromone-value array:item (table:get sat-pheromone-values a-sat) a-type
   let pheromone-array table:get sat-pheromone-values a-sat
   array:set pheromone-array a-type (existing-pheromone-value + concentration)
-  update-total-pheromones
+  
+  ;this updates the total pheromone value for the specified pheromone
+  let existing-total-pheromone-value array:item total-pheromone-values a-type
+  array:set total-pheromone-values a-type (existing-total-pheromone-value + concentration)
+  ;update-total-pheromones
   
   let pheromone-times table:get pheromone-time-map a-sat
   ;refresh when we last put down pheromones here.

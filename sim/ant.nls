@@ -187,6 +187,10 @@ to drop-pheromones [concentration]
   ask my-sentinel [
      let existing-pheromone-value array:item (table:get sat-pheromone-values sat-node) [pheromone-type] of myself
      array:set (table:get sat-pheromone-values sat-node) [pheromone-type] of myself (existing-pheromone-value + concentration)
+     
+     ;this updates the sentinels total value for the specified pheromone.
+     let existing-total-pheromone-value array:item total-pheromone-values [pheromone-type] of myself
+     array:set total-pheromone-values [pheromone-type] of myself (existing-total-pheromone-value + concentration)
      ;update-total-pheromones
   ]
   let existing-times table:get pheromone-time-map sat-node

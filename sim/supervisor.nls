@@ -55,12 +55,14 @@ to setup-supervisor
   ]
 end
 
+;update global total pheromone array
 to update
   foreach sentinel-list [
     ;update total pheromones, for use when ants decide to do
-    foreach n-values array:length total-pheromone-values [?] [
+    let current-sentinel ?
+    foreach n-values array:length [total-pheromone-values] of current-sentinel [?] [
       let existing-pheromones array:item total-pheromones ?
-      let new-pheromones array:item total-pheromone-values ?
+      let new-pheromones array:item [total-pheromone-values] of current-sentinel ?
       array:set total-pheromones ? (existing-pheromones + new-pheromones)
     ]
   ]
