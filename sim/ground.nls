@@ -183,7 +183,10 @@ to refresh-uplinks
     ]
     if not table:has-key? [sat-pheromone-values] of [my-sentinel] of myself who [
       ; [1 1] is bad. to-do
-      table:put [sat-pheromone-values] of [my-sentinel] of myself who array:from-list n-values number-pheromones [0] 
+      table:put [sat-pheromone-values] of [my-sentinel] of myself who array:from-list n-values number-pheromones [0]
+      ask [my-sentinel] of myself [
+        update-total-pheromones 
+      ]
     ]
   ]
   let current-ground self

@@ -127,42 +127,43 @@ to choose-sentinel
     let me [who] of myself
     table:put ant-queues [who] of [my-sat] of [my-system] of myself remove me existing-ants 
   ]
-  
-  let base 0
-  let spinner array:from-list (n-values (array:item total-pheromones pheromone-type) [0])
+
+  let spinner [];array:from-list (n-values (array:item total-pheromones pheromone-type) [0])
   ask sentinels [
-     let current-pheromone-value array:item total-pheromone-values [pheromone-type] of myself 
+     let current-pheromone-value array:item total-pheromone-values [pheromone-type] of myself
+     ;add one to prevent zero pheromone sentinels from being excluded
+     set current-pheromone-value current-pheromone-value + 1
      foreach n-values current-pheromone-value [?] [
-       array:set spinner (base + ?) who
+       set spinner lput self spinner
      ]
-     set base current-pheromone-value
   ]
-  let selected-sentinel array:item spinner (random array:item total-pheromones pheromone-type)
-  set my-sentinel sentinel selected-sentinel
+  let selected-sentinel item (random (length spinner)) spinner
+  set my-sentinel selected-sentinel
 end
 
 ;need to update total pheromones before we call this.
 to choose-sat
-  let base 0
-  let current-total array:item total-pheromone-values pheromone-type
+  ;let base 0
+  ;let current-total array:item total-pheromone-values pheromone-type
   ;initialize weighted movement chooser
-  let spinner array:from-list n-values current-total [0] 
+  let spinner [] ;array:from-list n-values current-total [0] 
   ask my-sentinel [
     ;for every sat
     foreach table:keys sat-pheromone-values [
       ;get the sat, the array, and the current value
-      let current-sat ?
+      let current-sat sat ?
       let current-array table:get sat-pheromone-values ?
       let current-pheromone-value array:item current-array [pheromone-type] of myself
+      ;add one to pervent zero-pheromone satellites from being excluded
+      set current-pheromone-value current-pheromone-value + 1
       ;place the sat in our chooser as many times as it has pheromones of our type
       foreach n-values current-pheromone-value [?] [
-        array:set spinner (base + ?) current-sat 
+        set spinner lput current-sat spinner 
       ]
-      ;update the base variable to put values in the correct place next time
-      set base current-pheromone-value   
     ]   
      ;randomly select a satellite from the weighted chooser
-    let selected-sat array:item spinner (random current-total)
+    let selected-sat (item (random (length spinner)) spinner)
+    
     let existing-queue table:get ant-queues selected-sat 
     table:put ant-queues selected-sat lput ([who] of myself) existing-queue
     set my-system [my-system] of selected-sat

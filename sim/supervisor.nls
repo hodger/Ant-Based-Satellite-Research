@@ -44,6 +44,7 @@ to setup-supervisor
     set temp-list lput self temp-list
     ;remove ground we just used
     set temp-grounds temp-grounds with [ self != current-ground ]
+    update-total-pheromones
   ]
   
   create-supervisors 1 [
@@ -62,7 +63,9 @@ to update
     let current-sentinel ?
     foreach n-values array:length [total-pheromone-values] of current-sentinel [?] [
       let existing-pheromones array:item total-pheromones ?
-      let new-pheromones array:item [total-pheromone-values] of current-sentinel ?
+      ;print existing-pheromones
+      let new-pheromones (array:item [total-pheromone-values] of current-sentinel ?) ;- (table:length [ant-queues] of current-sentinel)
+      ;print new-pheromones
       array:set total-pheromones ? (existing-pheromones + new-pheromones)
     ]
   ]

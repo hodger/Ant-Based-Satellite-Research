@@ -108,7 +108,7 @@ to go
     refresh-downlinks
   ]
   ask supervisors [
-    decay-pheromones ;take away pheromones
+    ;decay-pheromones ;take away pheromones
     update ;fix the total pheromone array
   ]
   ask sentinels [
@@ -420,6 +420,28 @@ antnum
 1
 0
 Number
+
+MONITOR
+259
+215
+370
+260
+NIL
+total-pheromones
+17
+1
+11
+
+MONITOR
+359
+310
+499
+355
+NIL
+global-pheromone-map
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
