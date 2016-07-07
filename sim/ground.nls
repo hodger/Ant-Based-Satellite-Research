@@ -42,7 +42,7 @@ to setup-ground
   create-grounds-2d groundnum [ ]
   set grounds-2d-list []
   ask grounds-2d [ set grounds-2d-list lput self grounds-2d-list ]
-  file-open "groundstations.csv" ;test data
+  file-open "res/groundstations.csv" ;test data
   let waste csv:from-row file-read-line ;gets rid of the first line (column definitions)
   let grounds-2d-count 0
   

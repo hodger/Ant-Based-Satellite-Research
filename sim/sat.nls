@@ -41,7 +41,7 @@ to setup-sats
   
   set geo-coors table:make
   
-  file-open "UCS_Satellite_Database_1-1-16.csv"
+  file-open "res/UCS_Satellite_Database_1-1-16.csv"
   let waste csv:from-row file-read-line ;gets rid of the first line (column definitions)
   let sys-count 0
   let freq-count 0
