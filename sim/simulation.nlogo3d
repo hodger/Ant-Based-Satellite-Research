@@ -103,6 +103,10 @@ to go
    ]
   ask grounds [  ;draw active uplinks
     refresh-uplinks
+    if time-numerical - last-check > check-wait-duration [
+      intermittent-check
+      set last-check time-numerical
+    ]
   ]
   ask sats [ ;draw active downlinks
     refresh-downlinks
@@ -187,6 +191,7 @@ to communicate-down
   ask end1 [ ask my-system [ set output-table transfer-output ] ]
   ;ground
 
+  let success false
   if table:length output-table > 0 [
     ask end2
     [
@@ -195,14 +200,18 @@ to communicate-down
           let command table:get command-archive ?
           let output table:get output-table ?
           table:put command-archive ? (sentence command output time)
+          set success true
         ]
         [
-          show "Received unknown process ID. This should never happen."
+          set success false
+          ;show (word "Received unknown process ID " ? " This should never happen.")
         ]
       ]
     ]
     ask end1 [
-      ask my-system [ show CLEAR_OUTPUT ]
+      if success [
+        ask my-system [ show CLEAR_OUTPUT ]
+      ]
     ]
   ]
   ;check for particpation, first.
@@ -287,10 +296,10 @@ NIL
 1
 
 SWITCH
-17
-318
-126
-351
+18
+251
+127
+284
 show-name?
 show-name?
 1
@@ -298,10 +307,10 @@ show-name?
 -1000
 
 SWITCH
-17
-358
-126
-391
+18
+291
+127
+324
 show-height?
 show-height?
 1
@@ -326,10 +335,10 @@ NIL
 0
 
 INPUTBOX
-17
-252
-172
-312
+18
+185
+173
+245
 tick-frac
 0.001
 1
@@ -348,10 +357,10 @@ groundnum
 Number
 
 SWITCH
-133
-318
-237
-351
+134
+251
+238
+284
 show-coor?
 show-coor?
 1
@@ -359,10 +368,10 @@ show-coor?
 -1000
 
 SWITCH
-133
-358
-237
-391
+134
+291
+238
+324
 show-id?
 show-id?
 1
@@ -381,10 +390,10 @@ table:to-list freq-table
 11
 
 SWITCH
-16
-396
-122
-429
+17
+329
+123
+362
 trails-2d?
 trails-2d?
 0
@@ -392,26 +401,37 @@ trails-2d?
 -1000
 
 INPUTBOX
-18
-186
-172
-246
-antnum
+189
+28
+291
+88
+antnum-deviation
 0
 1
 0
 Number
 
 MONITOR
-478
-71
-618
-116
+477
+72
+617
+117
 NIL
 global-pheromone-map
 17
 1
 11
+
+INPUTBOX
+297
+28
+405
+88
+antnum-markovian
+0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -67,13 +67,14 @@ end
 to-report get-time
   let day floor (ticks * tick-frac) / (earth-rot-time / scale)
   let sub-ticks ticks mod earth-rot-time
-  report (word "day: " day " ticks: " sub-ticks)
+  report (word "day:" day ":ticks:" sub-ticks)
 end
 
 to-report get-time-numerical
-  let day floor (ticks * tick-frac) / (earth-rot-time / scale)
-  let sub-ticks (ticks mod earth-rot-time) / earth-rot-time
-  report day + sub-ticks
+  ;let day floor (ticks * tick-frac) / (earth-rot-time / scale)
+  ;let sub-ticks (ticks mod earth-rot-time) / earth-rot-time
+  ;report day + sub-ticks
+  report ticks
 end
 
 to-report get-dist [ point-a point-b ]

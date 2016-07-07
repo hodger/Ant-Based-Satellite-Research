@@ -28,15 +28,15 @@ to update-var [ arg ]
 end
 
 to listen-commands [ arg ]
-  show "listening to commands"
+  ;show "listening to commands"
   set command-queue (sentence command-queue arg)
 end
 
 to process-commands
-  show "processing commands"
+  ;show "processing commands"
   foreach command-queue [
     let current parsed-command ?
-    show (word "processing " current)
+    ;show (word "processing " current)
     
     let ID item 0 current
     let time-sent item 1 current
@@ -44,7 +44,8 @@ to process-commands
     
     ;update our archive
     table:put command-archive ID (list command time-sent)
-    let instruction task [ runresult command ]
+    ;print command
+    let instruction task [ (runresult command) ]
     
     ;add receive time to output
     table:put output-queue ID time
@@ -54,10 +55,10 @@ to process-commands
 end
 
 to execute
-  show "executing commands"
+  ;show "executing commands"
   foreach table:keys work-queue [
     let result runresult table:get work-queue ?
-    show (word "executing " ?)
+    ;show (word "executing " ?)
     ifelse is-reporter-task? result [
       ;reinsert task into work queue if incomplete
       table:put work-queue ? result

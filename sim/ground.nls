@@ -1,4 +1,4 @@
-globals [ ]
+globals [ check-wait-duration ]
 
 breed [ grounds ground ]
 breed [ grounds-2d ground-2d ]
@@ -29,6 +29,8 @@ grounds-own [ name; string
               
               my-sentinel  ;sentinel
               
+              last-check  ;float, time that the last intermittant check was performed.
+              
               ground-ID ;float, randomized ID
 
               current-process-ID ]  ;float
@@ -39,6 +41,7 @@ grounds-2d-own [ label-text ]
 ;rotated and tilted to reach this position. Their movement is essentially a
 ;"horizontal orbit" which represents the Earth's rotation.
 to setup-ground
+  set check-wait-duration 30
   create-grounds-2d groundnum [ ]
   set grounds-2d-list []
   ask grounds-2d [ set grounds-2d-list lput self grounds-2d-list ]
@@ -60,6 +63,7 @@ to setup-ground
     set cone-angle 5
     set connected-sats []
     set requested-commands table:make
+    set last-check time-numerical
     ;the format of the archive is to be [ID: [SAT, COMMAND]] initially.
     ;however, once the output is transfered from the satellite,
     ;the format will become [ID: [SAT, COMMAND, OUTPUT]]
@@ -156,6 +160,7 @@ to request-commands [ the-commands ]
   foreach the-commands [
     let sat item 0 ?
     let ID (word ground-ID current-process-ID)
+    ;show (word "submitting process " ID)
     let command (word ground-ID " " current-process-ID " " time " " item 1 ?)
     let existing-commands []
     if table:has-key? requested-commands sat [
@@ -164,6 +169,15 @@ to request-commands [ the-commands ]
     table:put requested-commands sat (sentence existing-commands command)
     table:put command-archive ID (list sat command time)
     set current-process-ID current-process-ID + 1
+  ]
+end
+
+to intermittent-check 
+  if length connected-sats > 0 [
+    let current-sat [sat-ID] of item (random length connected-sats) connected-sats
+    request-commands (list (list current-sat "RETURN NAME")
+                           (list current-sat "RETURN LAT") 
+                           (list current-sat "RETURN LONG"))
   ]
 end
 
@@ -192,7 +206,6 @@ to refresh-uplinks
         ]
       ]
     ]
-    
   ]
   let current-ground self
   foreach connected-sats [
