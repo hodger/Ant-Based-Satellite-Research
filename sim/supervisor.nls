@@ -26,20 +26,7 @@ to setup-supervisor
     ;hide-turtle
     let current-ground one-of temp-grounds    
     
-    ask current-ground [
-      set my-sentinel myself 
-    ]
-    
-    set my-ground current-ground
-    set shape "target"
-    set color red
-    set zcor 49
-    set xcor [long] of my-ground / scale2d
-    set ycor [lat] of my-ground / scale2d
-    set ant-queues table:make
-    set sat-pheromone-values table:make
-    set total-pheromone-values array:from-list n-values number-pheromones [0]
-    set participating true
+    setup-sentinel current-ground
     
     set temp-list lput self temp-list
     ;remove ground we just used
@@ -94,6 +81,10 @@ to decay-pheromones
       ]
     ] 
   ]
+end
+
+to process-sentinel-request
+  
 end
 
 

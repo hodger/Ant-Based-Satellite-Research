@@ -24,6 +24,22 @@ to setup-sentinel-network [sentinel-num]
   ]
 end
 
+to setup-sentinel [a-ground]
+  ask a-ground [
+    set my-sentinel myself 
+  ]
+  set my-ground a-ground
+  set shape "target"
+  set color red
+  set zcor 49
+  set xcor [long] of my-ground / scale2d
+  set ycor [lat] of my-ground / scale2d
+  set ant-queues table:make
+  set sat-pheromone-values table:make
+  set total-pheromone-values array:from-list n-values number-pheromones [0]
+  set participating true
+end
+
 to-report validate-report [ant-data]
   ; to-do
   ; gotta put pheromones at other satellites around
