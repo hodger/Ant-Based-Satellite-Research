@@ -1,6 +1,8 @@
-globals [ ant-dispatch-table ]
+globals [ ant-dispatch-table NO_VAL ]
 
 breed [ ants ant ]
+
+undirected-link-breed [ connectors connector ]
 
 ants-own [ my-system
            
@@ -29,44 +31,29 @@ ants-own [ my-system
            time-dispatched ]
 
 ;static procedure
-to setup-ants [ sys stream a-name ]
+to setup-ants 
+  set NO_VAL "NO_VAL"
   set ant-dispatch-table table:make
   table:put ant-dispatch-table "deviation" task [ go-deviation ]
-  create-ants antnum [
+  create-ants antnum-deviation [
+    set shape "bug"
     set color yellow
     set zcor 49
+    set is-dispatched? false
+    setup-deviation-ant "freddy" 3 "LONG"
   ]
 end
 
 ;points is a list of two data points
-to setup-deviation-ant [ sys points a-name num-dev a-variable ]
-  set my-system sys
+to setup-deviation-ant [ a-name num-dev a-variable ]
+  set my-system NO_VAL
+  set my-sentinel NO_VAL
   set name a-name
   set species "deviation"
   set pheromone-type DEVIATION-PHEROMONE
   set variable a-variable
   set num-deviations num-dev
   set results []
-  ;if the stream is strings, we will use their lengths
-  
-  set index 0
-  set average 0
-  set sum-of-squares 0
-  let delta 0
-  
-  foreach n-values length points [?] [
-    let current item ? points
-    if is-string? current [ 
-      set current length current
-      set points replace-item ? points current 
-    ]
-    set index index + 1
-    set delta current - average
-    set average average + (delta / index)
-    set sum-of-squares sum-of-squares + delta * (current - average)   
-  ]
-  set std-dev sqrt (sum-of-squares / (index - 1))
-  set threshold std-dev * num-deviations
 end
 
 to setup-location-ant [ sys points a-name ]
@@ -77,7 +64,12 @@ end
 
 to go-ant
   let ret runresult table:get ant-dispatch-table species 
-  if ret != false [ set results lput ret results ]
+  ifelse ret != false [ 
+    set results lput ret results 
+  ]
+  [
+    set results lput "nothing found." results 
+  ]
 end
 
 to-report go-deviation
@@ -104,7 +96,7 @@ to draw-ant
   ifelse is-dispatched? [
     set xcor [xcor] of my-sentinel
     set ycor [ycor] of my-sentinel
-    create-link-to my-sentinel 
+    create-connector-with my-sentinel 
   ]
   [
     ask my-links [ die ]
@@ -117,20 +109,23 @@ end
 to move-ant
   ; to-do
   ; maybe don't move?
+  set my-sentinel NO_VAL
+  set my-system NO_VAL
   choose-sentinel
   choose-sat
 end
 
 to choose-sentinel
   ;clear self from current ant-queue
-  ask my-sentinel [
-    let existing-ants table:get ant-queues [who] of [my-sat] of [my-system] of myself
-    let me [who] of myself
-    table:put ant-queues [who] of [my-sat] of [my-system] of myself remove me existing-ants 
+  if my-sentinel != NO_VAL [
+    ask my-sentinel [
+      let existing-ants table:get ant-queues [who] of [my-sat] of [my-system] of myself
+      let me [who] of myself
+      table:put ant-queues [who] of [my-sat] of [my-system] of myself remove me existing-ants 
+    ]
   ]
-
   let spinner [];array:from-list (n-values (array:item total-pheromones pheromone-type) [0])
-  ask sentinels with [participating] [
+  ask sentinels with [participating and table:length ant-queues > 0] [
      let current-pheromone-value array:item total-pheromone-values [pheromone-type] of myself
      ;add one to prevent zero pheromone sentinels from being excluded
      set current-pheromone-value current-pheromone-value + 1
@@ -140,6 +135,7 @@ to choose-sentinel
   ]
   let selected-sentinel item (random (length spinner)) spinner
   set my-sentinel selected-sentinel
+  print selected-sentinel
 end
 
 ;need to update total pheromones before we call this.
@@ -165,9 +161,16 @@ to choose-sat
      ;randomly select a satellite from the weighted chooser
     let selected-sat (item (random (length spinner)) spinner)
     
-    let existing-queue table:get ant-queues selected-sat 
-    table:put ant-queues selected-sat lput ([who] of myself) existing-queue
-    set my-system [my-system] of selected-sat
+    let existing-queue table:get ant-queues [who] of selected-sat 
+    let ready (prep-ant myself selected-sat)
+    ifelse ready [
+      table:put ant-queues ([who] of selected-sat) lput ([who] of myself) existing-queue
+    ]
+    [
+      ask myself [move-ant]
+    ]
+    
+    ;set my-system [my-system] of selected-sat
   ]
 end
 

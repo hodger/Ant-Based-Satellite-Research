@@ -38,6 +38,7 @@ to setup
   generate-grounds
 
   setup-supervisor
+  setup-ants
 
   reset-ticks
 end
@@ -119,7 +120,9 @@ to go
     ; to-do
     ; this is where the sentinels draw the pheromones and such
     set label array:to-list total-pheromone-values
+    ;update-previous-values
   ]
+  if ticks > 500 [
   ask ants [
     ; tag-caution
     ; this is where ants observe the satellite data
@@ -133,6 +136,7 @@ to go
     ;if ant is dispatched, draw it on satellite with a link to its ground
     ;else, draw it on the ground station it currently resides on.
     draw-ant
+  ]
   ]
   tick
 end
@@ -165,12 +169,14 @@ to communicate-up
     ]
   ]
   ;if we have ants in queue, we set them to dispatched.
+  let current-system [my-system] of end2
   if length ant-list > 0 [
     foreach ant-list [
       ask ant ? [
         ;don't reset ants time if they are already dispatched
         if not is-dispatched? [
           set is-dispatched? true
+          set my-system current-system
           set time-dispatched time-numerical
         ]
       ]
@@ -406,7 +412,7 @@ INPUTBOX
 291
 88
 antnum-deviation
-0
+1
 1
 0
 Number
