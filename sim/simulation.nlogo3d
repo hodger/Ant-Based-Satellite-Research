@@ -367,23 +367,12 @@ show-id?
 -1000
 
 MONITOR
-260
-54
-548
-99
-NIL
+477
+19
+703
+64
+Frequencies
 table:to-list freq-table
-17
-1
-11
-
-MONITOR
-259
-106
-548
-151
-NIL
-table:to-list geo-coors
 17
 1
 11
@@ -399,17 +388,6 @@ trails-2d?
 1
 -1000
 
-MONITOR
-259
-160
-539
-205
-NIL
-table:to-list sats-by-height
-17
-1
-11
-
 INPUTBOX
 18
 186
@@ -422,21 +400,10 @@ antnum
 Number
 
 MONITOR
-259
-215
-370
-260
-NIL
-total-pheromones
-17
-1
-11
-
-MONITOR
-359
-310
-499
-355
+478
+71
+618
+116
 NIL
 global-pheromone-map
 17
