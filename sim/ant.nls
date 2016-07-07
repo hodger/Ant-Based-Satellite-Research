@@ -129,7 +129,7 @@ to choose-sentinel
   ]
 
   let spinner [];array:from-list (n-values (array:item total-pheromones pheromone-type) [0])
-  ask sentinels [
+  ask sentinels with [participating] [
      let current-pheromone-value array:item total-pheromone-values [pheromone-type] of myself
      ;add one to prevent zero pheromone sentinels from being excluded
      set current-pheromone-value current-pheromone-value + 1

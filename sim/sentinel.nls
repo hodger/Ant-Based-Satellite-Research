@@ -42,7 +42,7 @@ end
 
 to-report validate-report [ant-data]
   ; to-do
-  ; gotta put pheromones at other satellites around
+  ; gotta put pheromones at other satellites around, MAKE SURE THEY ARE PARTICIPATING
   report 0
 end
 

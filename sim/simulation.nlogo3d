@@ -205,20 +205,23 @@ to communicate-down
       ask my-system [ show CLEAR_OUTPUT ]
     ]
   ]
-  let ant-list table:get [ant-queues] of [my-sentinel] of end2 [who] of end1
-  if length ant-list > 0 [
-    foreach ant-list [
-      ask ant ? [
-        if is-dispatched? [
-          if length results > 0 [
-            report-ant
-            set results []
-          ]
-          ; he has a chance to return
-          if time-numerical - time-dispatched > min-time-to-return [
-            ; to-do
-            ; implement some kind of smarter solution than flipping a coin
-            if random 2 = 1 [ set is-dispatched? false set time-dispatched time-numerical ]
+  ;check for particpation, first.
+  if [participating] of [my-sentinel] of end2 [
+    let ant-list table:get [ant-queues] of [my-sentinel] of end2 [who] of end1
+    if length ant-list > 0 [
+      foreach ant-list [
+        ask ant ? [
+          if is-dispatched? [
+            if length results > 0 [
+              report-ant
+              set results []
+            ]
+            ; he has a chance to return
+            if time-numerical - time-dispatched > min-time-to-return [
+              ; to-do
+              ; implement some kind of smarter solution than flipping a coin
+              if random 2 = 1 [ set is-dispatched? false set time-dispatched time-numerical ]
+            ]
           ]
         ]
       ]

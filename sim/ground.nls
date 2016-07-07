@@ -178,16 +178,21 @@ to refresh-uplinks
       show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
     set new-list lput self new-list
-    if not table:has-key? [ant-queues] of [my-sentinel] of myself who [ 
-      table:put [ant-queues] of [my-sentinel] of myself who [] 
-    ]
-    if not table:has-key? [sat-pheromone-values] of [my-sentinel] of myself who [
-      ; [1 1] is bad. to-do
-      table:put [sat-pheromone-values] of [my-sentinel] of myself who array:from-list n-values number-pheromones [0]
-      ask [my-sentinel] of myself [
-        update-total-pheromones 
+    
+    ;check for participation, first. Otherwise don't add a sat to its ant-queue keys.
+    if [participating] of [my-sentinel] of myself [
+      if not table:has-key? [ant-queues] of [my-sentinel] of myself who [ 
+        table:put [ant-queues] of [my-sentinel] of myself who [] 
+      ]
+      if not table:has-key? [sat-pheromone-values] of [my-sentinel] of myself who [
+        ; [1 1] is bad. to-do
+        table:put [sat-pheromone-values] of [my-sentinel] of myself who array:from-list n-values number-pheromones [0]
+        ask [my-sentinel] of myself [
+          update-total-pheromones 
+        ]
       ]
     ]
+    
   ]
   let current-ground self
   foreach connected-sats [
