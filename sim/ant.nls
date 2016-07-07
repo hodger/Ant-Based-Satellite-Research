@@ -81,6 +81,7 @@ to go-ant
 end
 
 to-report go-deviation
+  set gps (list table:get [sat-data] of my-system "LAT" table:get [sat-data] of my-system "LONG")
   let current-value table:get [sat-data] of my-system variable
   ifelse abs (average - current-value) > threshold [ 
     ;we found an abnormality

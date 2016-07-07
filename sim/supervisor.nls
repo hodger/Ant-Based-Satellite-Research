@@ -22,6 +22,8 @@ to setup-supervisor
   let temp-grounds grounds
   let temp-list []
   
+  setup-sentinel-network
+  
   create-sentinels 18 [
     ;hide-turtle
     let current-ground one-of temp-grounds    
