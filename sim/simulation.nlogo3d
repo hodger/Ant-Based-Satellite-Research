@@ -432,7 +432,7 @@ INPUTBOX
 291
 88
 antnum-deviation
-1
+5
 1
 0
 Number
@@ -460,9 +460,9 @@ antnum-markovian
 Number
 
 MONITOR
-178
+189
 125
-1406
+400
 170
 NIL
 visited

@@ -223,5 +223,5 @@ to drop-pheromones [concentration]
   let existing-times table:get pheromone-time-map sat-node
   ;refresh when we last put down pheromones here.
   table:put pheromone-time-map sat-node replace-item pheromone-type existing-times time-numerical
-  table:put global-pheromone-map sat-node table:get sat-pheromone-values sat-node
+  table:put global-pheromone-map sat-node table:get [sat-pheromone-values] of my-sentinel sat-node
 end
