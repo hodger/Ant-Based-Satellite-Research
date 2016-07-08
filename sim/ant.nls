@@ -28,6 +28,8 @@ ants-own [ my-system
            
            is-dispatched?
            
+           is-waiting?
+           
            time-dispatched ]
 
 ;static procedure
@@ -40,6 +42,7 @@ to setup-ants
     set color yellow
     set zcor 49
     set is-dispatched? false
+    set is-waiting? false
     setup-deviation-ant "freddy" 3 "LONG"
   ]
 end
@@ -64,11 +67,8 @@ end
 
 to go-ant
   let ret runresult table:get ant-dispatch-table species 
-  ifelse ret != false [ 
+  if ret != false [ 
     set results lput ret results 
-  ]
-  [
-    set results lput "nothing found." results 
   ]
 end
 
@@ -94,12 +94,14 @@ end
 
 to draw-ant
   ifelse is-dispatched? [
-    set xcor [xcor] of my-sentinel
-    set ycor [ycor] of my-sentinel
-    create-connector-with my-sentinel 
+    set xcor [xcor] of my-system
+    set ycor [ycor] of my-system
+    if not any? my-connectors [
+      create-connector-with my-sentinel
+    ] 
   ]
   [
-    ask my-links [ die ]
+    ask my-connectors [ die ]
     set xcor [xcor] of my-sentinel
     set ycor [ycor] of my-sentinel
   ]
@@ -109,21 +111,21 @@ end
 to move-ant
   ; to-do
   ; maybe don't move?
-  set my-sentinel NO_VAL
-  set my-system NO_VAL
+  ;set my-sentinel NO_VAL
+  ;set my-system NO_VAL
   choose-sentinel
   choose-sat
 end
 
 to choose-sentinel
   ;clear self from current ant-queue
-  if my-sentinel != NO_VAL [
-    ask my-sentinel [
-      let existing-ants table:get ant-queues [who] of [my-sat] of [my-system] of myself
-      let me [who] of myself
-      table:put ant-queues [who] of [my-sat] of [my-system] of myself remove me existing-ants 
-    ]
-  ]
+  ;if my-sentinel != NO_VAL [
+  ;  ask my-sentinel [
+  ;    let existing-ants table:get ant-queues [who] of [my-sat] of [my-system] of myself
+  ;    let me [who] of myself
+  ;    table:put ant-queues [who] of [my-sat] of [my-system] of myself remove me existing-ants 
+  ;  ]
+  ;]
   let spinner [];array:from-list (n-values (array:item total-pheromones pheromone-type) [0])
   ask sentinels with [participating and table:length ant-queues > 0] [
      let current-pheromone-value array:item total-pheromone-values [pheromone-type] of myself
@@ -135,7 +137,7 @@ to choose-sentinel
   ]
   let selected-sentinel item (random (length spinner)) spinner
   set my-sentinel selected-sentinel
-  print selected-sentinel
+  show (word "ant " self " chose " selected-sentinel)
 end
 
 ;need to update total pheromones before we call this.
@@ -160,14 +162,23 @@ to choose-sat
     ]   
      ;randomly select a satellite from the weighted chooser
     let selected-sat (item (random (length spinner)) spinner)
-    
+    ;show selected-sat
+    show (word "ant " self " chose " [my-system] of selected-sat)
     let existing-queue table:get ant-queues [who] of selected-sat 
     let ready (prep-ant myself selected-sat)
     ifelse ready [
       table:put ant-queues ([who] of selected-sat) lput ([who] of myself) existing-queue
+      ask myself [
+        set is-waiting? true 
+      ]
     ]
     [
-      ask myself [move-ant]
+      ask myself [
+        show (word "Scrambling the movement, because " selected-sat " was unavailable.")
+        set my-sentinel NO_VAL 
+        set my-system NO_VAL
+        move-ant
+      ]
     ]
     
     ;set my-system [my-system] of selected-sat
@@ -181,14 +192,18 @@ to report-ant
     ;communicate with ant
     set answer validate-report [results] of me
   ]
+  set results []
   if answer > 0 [
     drop-pheromones answer
   ]
 end
 
 to drop-pheromones [concentration]
+  show "dropping pheromones"
   let sat-node 0
-  ask my-system [ set sat-node my-sat ]
+  ;show my-system
+  ask my-system [ set sat-node [who] of my-sat ]
+  ;show sat-node
   ask my-sentinel [
      let existing-pheromone-value array:item (table:get sat-pheromone-values sat-node) [pheromone-type] of myself
      array:set (table:get sat-pheromone-values sat-node) [pheromone-type] of myself (existing-pheromone-value + concentration)

@@ -5,6 +5,8 @@ breed [markers marker]
 
 sentinels-own [ my-ground  ;ground
                 
+                my-supervisor
+                
                 sat-pheromone-values  ;table, sat -> array of pheromones for each satellite
               
                 total-pheromone-values  ;array, sum of each satellite pheromone value
@@ -46,23 +48,37 @@ end
 to-report validate-report [ant-data]
   ; to-do
   ; gotta put pheromones at other satellites around, MAKE SURE THEY ARE PARTICIPATING
-  let a-gps item 0 ant-data
-  let a-lat item 0 a-gps
-  let a-long item 1 a-gps
+  let a-gps 0
+  let a-lat 0
+  let a-long 0
+  let a-variable 0
+  let a-value 0
+  foreach ant-data [  
+    set a-gps item 0 ?
+    set a-lat item 0 a-gps
+    set a-long item 1 a-gps
   
-  let a-variable item 1 ant-data
-  let a-value item 2 ant-data
-  
+    set a-variable item 1 ?
+    set a-value item 2 ?
+    ; to-do counter will increase for every hit.
+  ]
   ;how should we validate?
   
   let temporary-boolean true 
   ifelse temporary-boolean [
     ;look for other satellites
     let nearby-sats []
-    ask sats with [get-dist a-gps (list lat long) < search-radius and [participating] of [my-sentinel] of my-ground] [set nearby-sats lput self nearby-sats]
+    ask sats with [get-dist a-gps (list lat long) < search-radius] [set nearby-sats lput self nearby-sats]
+    
     foreach nearby-sats [
-      ask [my-sentinel] of [my-ground] of ? [
-        drop-pheromones-at ? DEVIATION-PHEROMONE pheromone-concentration 
+      let sentinel-set (turtle-set)
+      ask my-supervisor [
+        set sentinel-set get-sentinels-with ? 
+      ]
+      if any? sentinel-set [
+        ask one-of sentinel-set [
+          drop-pheromones-at ? DEVIATION-PHEROMONE pheromone-concentration 
+        ]
       ]
     ]
     report pheromone-concentration 
@@ -73,6 +89,7 @@ to-report validate-report [ant-data]
 end
 
 to-report prep-ant [an-ant a-sat]
+  ;show (word "Prepping ant " an-ant)
   let commands [command-archive] of my-ground
   if [pheromone-type] of an-ant = DEVIATION-PHEROMONE [
     let previous-values []
@@ -88,6 +105,7 @@ to-report prep-ant [an-ant a-sat]
       report false 
     ]
     [
+      show previous-values
       ask an-ant [
         set index 0
         set average 0
@@ -105,7 +123,9 @@ to-report prep-ant [an-ant a-sat]
         ]
         set std-dev sqrt (sum-of-squares / (index - 1))
         set threshold std-dev * num-deviations
-      ] 
+        ;show my-sentinel
+        ;show my-system
+      ]
       report true
     ]
   ]
@@ -166,4 +186,11 @@ to update-previous-values
   ]
   ;table:put previous-values "LONG" latest-long
   ;table:put previous-values "LAT" latest-lat
+end
+
+to remove-ant [an-ant a-sat]
+  show (word "removing ant " an-ant " from " a-sat)
+  let existing-ants table:get ant-queues [who] of a-sat
+  table:put ant-queues [who] of a-sat remove [who] of an-ant existing-ants
+  show table:get ant-queues [who] of a-sat
 end

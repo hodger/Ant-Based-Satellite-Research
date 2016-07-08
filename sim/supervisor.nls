@@ -42,6 +42,11 @@ to setup-supervisor
      set pheromone-time-map table:make
      set MARKOVIAN-PHEROMONE 0
      set DEVIATION-PHEROMONE 1
+     foreach sentinel-list [
+       ask ? [
+         set my-supervisor myself 
+       ] 
+     ]
   ]
 end
 
@@ -85,8 +90,25 @@ to decay-pheromones
   ]
 end
 
-to process-sentinel-request
-  
+to-report is-sat-reachable? [a-sat]
+  foreach sentinel-list [
+    if table:has-key? ant-queues a-sat and participating [
+      report true 
+    ]
+  ]
+  report false
 end
 
+to-report get-sentinels-with [a-sat]
+  let destinations (turtle-set)
+  foreach sentinel-list [
+    ask ? [  
+      if table:has-key? ant-queues a-sat and participating [
+        set destinations (turtle-set destinations ?) 
+      ] 
+    ]
+  ]
+  show destinations
+  report destinations
+end
 

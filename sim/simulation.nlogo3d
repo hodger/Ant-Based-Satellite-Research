@@ -24,6 +24,7 @@ directed-link-breed [downlinks downlink]
 to setup
   clear-all
   file-close-all
+  stop-inspecting-dead-agents
   set scale 1000 ;Global to scale down kilometers and minutes
   set scale2d 4
   set earth-radius (6371)
@@ -39,7 +40,7 @@ to setup
 
   setup-supervisor
   setup-ants
-
+  inspect one-of ants
   reset-ticks
 end
 
@@ -51,6 +52,7 @@ to generate-grounds
     foreach current-list [
       manual-setup-ground (word "manual" num) item 0 ? item 1 ? table:get freq-table current-key
       create-grounds-2d 1 [
+       hide-turtle
        set shape "target"
        set color red
        set zcor 49
@@ -131,7 +133,9 @@ to go
       go-ant
     ]
     [
-      move-ant ;relies on pheromone values
+      if not is-waiting? [
+        move-ant ;relies on pheromone values
+      ]
     ]
     ;if ant is dispatched, draw it on satellite with a link to its ground
     ;else, draw it on the ground station it currently resides on.
@@ -171,11 +175,15 @@ to communicate-up
   ;if we have ants in queue, we set them to dispatched.
   let current-system [my-system] of end2
   if length ant-list > 0 [
+    ;show [my-sentinel] of end1
+    ;show end2
     foreach ant-list [
       ask ant ? [
         ;don't reset ants time if they are already dispatched
         if not is-dispatched? [
+          show (word "dispatching ant to " current-system)
           set is-dispatched? true
+          set is-waiting? false
           set my-system current-system
           set time-dispatched time-numerical
         ]
@@ -221,6 +229,7 @@ to communicate-down
     ]
   ]
   ;check for particpation, first.
+  let current-sat end1
   if [participating] of [my-sentinel] of end2 [
     let ant-list table:get [ant-queues] of [my-sentinel] of end2 [who] of end1
     if length ant-list > 0 [
@@ -235,7 +244,16 @@ to communicate-down
             if time-numerical - time-dispatched > min-time-to-return [
               ; to-do
               ; implement some kind of smarter solution than flipping a coin
-              if random 2 = 1 [ set is-dispatched? false set time-dispatched time-numerical ]
+              if random 2 = 1 [
+                set is-dispatched? false
+                set is-waiting? false
+                set time-dispatched time-numerical
+                ask my-sentinel [
+                  remove-ant myself current-sat
+                ]
+                set my-system NO_VAL
+                set my-sentinel NO_VAL
+              ]
             ]
           ]
         ]
