@@ -182,6 +182,7 @@ to communicate-up
         ;don't reset ants time if they are already dispatched
         if not is-dispatched? [
           show (word "dispatching ant to " current-system)
+          set visited lput current-system visited
           set is-dispatched? true
           set is-waiting? false
           set my-system current-system
@@ -204,7 +205,7 @@ to communicate-down
   ;satellite os
   ask end1 [ ask my-system [ set output-table transfer-output ] ]
   ;ground
-
+  let current-system [my-system] of end1
   let success false
   if table:length output-table > 0 [
     ask end2
@@ -214,7 +215,8 @@ to communicate-down
           let command table:get command-archive ?
           let output table:get output-table ?
           table:put command-archive ? (sentence command output time)
-          set success true
+          ;set success true
+          ask current-system [ show CLEAR_OUTPUT_ID ? ]
         ]
         [
           set success false
@@ -222,11 +224,11 @@ to communicate-down
         ]
       ]
     ]
-    ask end1 [
-      if success [
-        ask my-system [ show CLEAR_OUTPUT ]
-      ]
-    ]
+    ;ask end1 [
+    ;  if success [
+    ;    ask my-system [ let a-waste CLEAR_OUTPUT_ID  ]
+    ;  ]
+    ;]
   ]
   ;check for particpation, first.
   let current-sat end1
@@ -456,6 +458,17 @@ antnum-markovian
 1
 0
 Number
+
+MONITOR
+178
+125
+1406
+170
+NIL
+visited
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?

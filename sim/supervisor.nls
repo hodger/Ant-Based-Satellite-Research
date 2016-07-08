@@ -112,3 +112,21 @@ to-report get-sentinels-with [a-sat]
   report destinations
 end
 
+to spawn-ant-at [a-sentinel a-sat a-type]
+  if [participating] of a-sentinel [
+    create-ants 1 [
+      setup-basic-ant
+      ;temporary while we only have one kind of ant
+      setup-deviation-ant "freddy" 3 "LONG"
+      ;-------------------
+      set my-sentinel a-sentinel
+      set is-waiting? true
+      ask a-sentinel [
+        if prep-ant myself a-sat [
+          table:put ant-queues [who] of a-sat lput ([who] of myself) (table:get ant-queues [who] of a-sat)
+        ]
+      ]
+    ]
+  ]
+  
+end

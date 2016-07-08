@@ -93,8 +93,10 @@ to-report prep-ant [an-ant a-sat]
   let commands [command-archive] of my-ground
   if [pheromone-type] of an-ant = DEVIATION-PHEROMONE [
     let previous-values []
+    show commands
     foreach table:keys commands [
       let current-list table:get commands ?
+      ;show current-list
       if length current-list > 3 and member? [sat-id] of a-sat current-list 
                                  and member? [variable] of an-ant item 1 current-list [
         set previous-values lput item 4 current-list previous-values
@@ -102,6 +104,8 @@ to-report prep-ant [an-ant a-sat]
     ]
     ifelse is-string? previous-values or length previous-values < 2 [
       ;abort this preperation, we don't have the data.
+      show (word "prep ant failed for " an-ant)
+      ;show previous-values
       report false 
     ]
     [

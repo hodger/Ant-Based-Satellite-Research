@@ -1,4 +1,4 @@
-globals [ ant-dispatch-table NO_VAL ]
+globals [ ant-dispatch-table NO_VAL visited ]
 
 breed [ ants ant ]
 
@@ -34,17 +34,22 @@ ants-own [ my-system
 
 ;static procedure
 to setup-ants 
+  set visited []
   set NO_VAL "NO_VAL"
   set ant-dispatch-table table:make
   table:put ant-dispatch-table "deviation" task [ go-deviation ]
   create-ants antnum-deviation [
-    set shape "bug"
-    set color yellow
-    set zcor 49
-    set is-dispatched? false
-    set is-waiting? false
+    setup-basic-ant
     setup-deviation-ant "freddy" 3 "LONG"
   ]
+end
+
+to setup-basic-ant
+  set shape "bug"
+  set color yellow
+  set zcor 49
+  set is-dispatched? false
+  set is-waiting? false   
 end
 
 ;points is a list of two data points
@@ -135,6 +140,7 @@ to choose-sentinel
        set spinner lput self spinner
      ]
   ]
+  show spinner
   let selected-sentinel item (random (length spinner)) spinner
   set my-sentinel selected-sentinel
   show (word "ant " self " chose " selected-sentinel)
@@ -161,6 +167,7 @@ to choose-sat
       ]
     ]   
      ;randomly select a satellite from the weighted chooser
+    show spinner
     let selected-sat (item (random (length spinner)) spinner)
     ;show selected-sat
     show (word "ant " self " chose " [my-system] of selected-sat)

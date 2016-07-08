@@ -162,6 +162,11 @@ to-report CLEAR_OUTPUT
   report 1
 end
 
+to-report CLEAR_OUTPUT_ID [an-id] 
+  table:remove output-queue an-id
+  report 1
+end
+
 to-report INSTRUMENT_AT [ lat-a long-a ]
   if is-string? lat-a [ set lat-a read-from-string lat-a ]
   if is-string? long-a [ set long-a read-from-string long-a ]
