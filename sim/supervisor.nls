@@ -40,6 +40,7 @@ to setup-supervisor
      ;hide-turtle
      set sentinel-list temp-list
      set pheromone-time-map table:make
+     set global-pheromone-map table:make
      set MARKOVIAN-PHEROMONE 0
      set DEVIATION-PHEROMONE 1
      foreach sentinel-list [
@@ -55,6 +56,9 @@ to update
   foreach sentinel-list [
     ;update total pheromones, for use when ants decide to do
     let current-sentinel ?
+    ask current-sentinel [
+        update-total-pheromones 
+      ]
     foreach n-values array:length [total-pheromone-values] of current-sentinel [?] [
       let existing-pheromones array:item total-pheromones ?
       ;print existing-pheromones
@@ -65,9 +69,35 @@ to update
   ]
 end
 
+to-report add-sat-to-global-map [a-sat] 
+  ifelse table:has-key? global-pheromone-map [who] of a-sat [
+    ;report pointer to the array.
+    report table:get global-pheromone-map [who] of a-sat
+  ]
+  [
+    let new-pheromone-list n-values number-pheromones [0]
+    table:put global-pheromone-map [who] of a-sat array:from-list new-pheromone-list
+    report table:get global-pheromone-map [who] of a-sat 
+  ]
+end
+
+to reset-time [a-sat a-type]
+  ifelse table:has-key? pheromone-time-map [who] of a-sat [
+    array:set (table:get pheromone-time-map [who] of a-sat) a-type time-numerical 
+  ]
+  [
+    let new-time-list n-values number-pheromones [0]
+    foreach new-time-list [
+      set new-time-list replace-item ? new-time-list time-numerical 
+    ]
+    table:put pheromone-time-map [who] of a-sat array:from-list new-time-list
+  ]
+end
+
 to decay-pheromones
   ; to-do
   ; must decay or everything will be ruined.
+  if table:length pheromone-time-map > 0 [
   foreach table:keys pheromone-time-map [
     let current-sat ?
     let current-times table:get pheromone-time-map ?
@@ -80,13 +110,12 @@ to decay-pheromones
         if time-numerical - array:item current-times ? > EVAPORATION-TIME [
           ;set the new pheromone value in the array
           array:set current-pheromones ? current-value - EVAPORATION-VALUE
-          table:put global-pheromone-map current-sat current-pheromones
           ;set the new time value in the array
           array:set current-times ? time-numerical
-          table:put pheromone-time-map current-sat current-times
         ] 
       ]
     ] 
+  ]
   ]
 end
 

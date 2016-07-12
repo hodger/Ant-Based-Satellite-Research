@@ -115,7 +115,7 @@ to go
     refresh-downlinks
   ]
   ask supervisors [
-    ;decay-pheromones ;take away pheromones
+    decay-pheromones ;take away pheromones
     update ;fix the total pheromone array
   ]
   ask sentinels [
@@ -216,7 +216,7 @@ to communicate-down
           let output table:get output-table ?
           table:put command-archive ? (sentence command output time)
           ;set success true
-          ask current-system [ show CLEAR_OUTPUT_ID ? ]
+          ask current-system [ let a CLEAR_OUTPUT_ID ? ]
         ]
         [
           set success false

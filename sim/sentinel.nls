@@ -148,8 +148,10 @@ to highlight-report [a-lat a-long]
 end
 
 to drop-pheromones-at [a-sat a-type concentration]
-  let existing-pheromone-value array:item (table:get sat-pheromone-values a-sat) a-type
-  let pheromone-array table:get sat-pheromone-values a-sat
+  let sat-node [who] of a-sat
+  
+  let existing-pheromone-value array:item (table:get sat-pheromone-values sat-node) a-type
+  let pheromone-array table:get sat-pheromone-values sat-node
   array:set pheromone-array a-type (existing-pheromone-value + concentration)
   
   ;this updates the total pheromone value for the specified pheromone
@@ -157,10 +159,7 @@ to drop-pheromones-at [a-sat a-type concentration]
   array:set total-pheromone-values a-type (existing-total-pheromone-value + concentration)
   ;update-total-pheromones
   
-  let pheromone-times table:get pheromone-time-map a-sat
-  ;refresh when we last put down pheromones here.
-  set pheromone-times replace-item a-type pheromone-times time-numerical
-  table:put global-pheromone-map a-sat pheromone-array 
+  reset-time a-sat a-type
 end
 
 to update-total-pheromones 

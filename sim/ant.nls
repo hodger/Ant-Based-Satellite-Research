@@ -220,8 +220,8 @@ to drop-pheromones [concentration]
      array:set total-pheromone-values [pheromone-type] of myself (existing-total-pheromone-value + concentration)
      ;update-total-pheromones
   ]
-  let existing-times table:get pheromone-time-map sat-node
+  reset-time (sat sat-node) pheromone-type
   ;refresh when we last put down pheromones here.
-  table:put pheromone-time-map sat-node replace-item pheromone-type existing-times time-numerical
-  table:put global-pheromone-map sat-node table:get [sat-pheromone-values] of my-sentinel sat-node
+  ; we should not need to update global-pheromone-map
+  ;table:put global-pheromone-map sat-node table:get [sat-pheromone-values] of my-sentinel sat-node
 end
