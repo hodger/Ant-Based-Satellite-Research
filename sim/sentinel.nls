@@ -45,9 +45,10 @@ to setup-sentinel [a-ground]
   ;set previous-values table:make
 end
 
-to-report validate-report [ant-data]
+to-report validate-report [ant-data ant-sys]
   ; to-do
   ; gotta put pheromones at other satellites around, MAKE SURE THEY ARE PARTICIPATING
+  let original-sat [my-sat] of ant-sys
   let a-gps 0
   let a-lat 0
   let a-long 0
@@ -68,8 +69,7 @@ to-report validate-report [ant-data]
   ifelse temporary-boolean [
     ;look for other satellites
     let nearby-sats []
-    ask sats with [get-dist a-gps (list lat long) < search-radius] [set nearby-sats lput self nearby-sats]
-    
+    ask sats with [(get-dist a-gps (list lat long) < search-radius) and (self != original-sat)] [set nearby-sats lput self nearby-sats]
     foreach nearby-sats [
       let sentinel-set (turtle-set)
       ask my-supervisor [

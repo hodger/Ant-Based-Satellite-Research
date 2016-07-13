@@ -194,13 +194,14 @@ end
 
 to report-ant
   let me self
-  let answer false
+  let answer 0
   ask my-sentinel [
     ;communicate with ant
-    set answer validate-report [results] of me
+    set answer validate-report [results] of me [my-system] of me
   ]
   set results []
   if answer > 0 [
+    show (word "ant " self " is gonna drop pheromones.")
     drop-pheromones answer
   ]
 end
