@@ -7,17 +7,17 @@ globals [ number-pheromones ; number, how many pheromone types
           DEVIATION-PHEROMONE
           total-pheromones ] ; array, sum all pheromones in the simulation.
 
-breed [ supervisors supervisor ]
+breed [ environments environment ]
 
-supervisors-own [
+environments-own [
   sentinel-list
 ]
 
-to setup-supervisor
+to setup-environment
   set number-pheromones 2
   set total-pheromones array:from-list (n-values number-pheromones [0])
   set EVAPORATION-TIME 25
-  set EVAPORATION-VALUE 2
+  set EVAPORATION-VALUE 5
   ;copy grounds to a temporary agentset
   let temp-grounds grounds
   let temp-list []
@@ -36,7 +36,7 @@ to setup-supervisor
     update-total-pheromones
   ]
   
-  create-supervisors 1 [
+  create-environments 1 [
      ;hide-turtle
      set sentinel-list temp-list
      set pheromone-time-map table:make
@@ -45,7 +45,7 @@ to setup-supervisor
      set DEVIATION-PHEROMONE 1
      foreach sentinel-list [
        ask ? [
-         set my-supervisor myself 
+         set my-environment myself 
        ] 
      ]
   ]

@@ -5,7 +5,7 @@ breed [markers marker]
 
 sentinels-own [ my-ground  ;ground
                 
-                my-supervisor
+                my-environment
                 
                 sat-pheromone-values  ;table, sat -> array of pheromones for each satellite
               
@@ -72,7 +72,7 @@ to-report validate-report [ant-data ant-sys]
     ask sats with [(get-dist a-gps (list lat long) < search-radius) and (self != original-sat)] [set nearby-sats lput self nearby-sats]
     foreach nearby-sats [
       let sentinel-set (turtle-set)
-      ask my-supervisor [
+      ask my-environment [
         set sentinel-set get-sentinels-with ? 
       ]
       if any? sentinel-set [
