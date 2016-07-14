@@ -42,6 +42,10 @@ to setup-ants
     setup-basic-ant
     setup-deviation-ant "freddy" 3 "LONG"
   ]
+  create-ants antnum-time [
+    setup-basic-ant
+    
+  ]
 end
 
 to setup-basic-ant
