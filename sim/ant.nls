@@ -32,6 +32,8 @@ ants-own [ my-system
            
            time-dispatched ]
 
+;test comment
+
 ;static procedure
 to setup-ants 
   set visited []
