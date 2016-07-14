@@ -59,7 +59,7 @@ to-report validate-report [ant-data ant-sys]
     set a-gps item 0 ?
     set a-lat item 0 a-gps
     set a-long item 1 a-gps
-  
+    
     set a-variable item 1 ?
     set a-value item 2 ?
     ; to-do counter will increase for every hit.
