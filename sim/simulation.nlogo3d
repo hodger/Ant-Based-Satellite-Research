@@ -109,7 +109,7 @@ to go
   ask sentinels [
     ; to-do
     ; this is where the sentinels draw the pheromones and such
-    set label array:to-list total-pheromone-values
+    set label pheromones
     ;update-previous-values
   ]
   if ticks > 500 [
