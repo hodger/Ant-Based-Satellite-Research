@@ -493,12 +493,23 @@ antnum-time
 Number
 
 INPUTBOX
-389
-327
-544
-387
+377
+335
+532
+395
 num-problem-types
+6
+1
 0
+Number
+
+INPUTBOX
+377
+272
+532
+332
+min-config-types
+1
 1
 0
 Number

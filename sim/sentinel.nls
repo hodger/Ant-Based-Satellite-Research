@@ -23,7 +23,7 @@ sentinels-own [ my-ground  ;ground
                 
                 number-config
                 
-                sat-config-pheromones 
+                sat-config-pheromones
                 
                 sat-sum-pheromones
                 

@@ -33,7 +33,9 @@ ants-own [ my-system
            time-dispatched 
            
            ;NEW
-           config-index]
+           config-index
+           
+           my-sat ]
 
 ;test comment
 
@@ -155,6 +157,52 @@ to choose-sentinel
   show (word "ant " self " chose " selected-sentinel)
 end
 
+to choose-sentinel-2
+  let spinner []
+  ask sentinels with [participating and table:length ant-queues > 0] [
+    foreach n-values (pheromones + 1) [?] [
+      set spinner lput self spinner 
+    ] 
+  ]
+  let selected-sentinel item (random (length spinner)) spinner
+  set my-sentinel selected-sentinel
+  show (word "ant " self " chose " selected-sentinel)
+end
+
+to choose-sat-2 
+  let spinner []
+  ask my-sentinel [
+    foreach table:keys [sat-sum-pheromones] of my-sentinel [
+      let current-sum (table:get sat-sum-pheromones ?) + 1
+      foreach n-values current-sum [?] [
+        set spinner lput self spinner 
+      ]  
+    ]
+  ]
+  let selected-sat item (random (length spinner)) spinner
+  set my-sat selected-sat
+  show (word "ant " self " chose " selected-sat)  
+end
+
+to choose-config
+  let spinner []
+  let config-pheromone-array table:get [sat-config-pheromones] of my-sentinel [who] of my-sat
+  foreach n-values array:length config-pheromone-array [?] [
+    let current-index ?
+    foreach n-values array:item config-pheromone-array current-index [?] [
+      set spinner lput current-index spinner 
+    ]
+  ]
+  
+  let selected-config-index array:item config-pheromone-array item (random (length spinner)) spinner
+  set config-index selected-config-index
+  
+  let selected-config array:item config-index [available-configs] of my-sat
+  
+  show (word "ant " self " chose config " table:get problem-identifiers selected-config)
+end
+
+
 ;need to update total pheromones before we call this.
 to choose-sat
   ;let base 0
@@ -196,8 +244,6 @@ to choose-sat
         move-ant
       ]
     ]
-    
-    ;set my-system [my-system] of selected-sat
   ]
 end
 

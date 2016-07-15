@@ -30,9 +30,11 @@ sats-own [ name  ;string
            cone-angle cone-dist  ;floats, determine size of cone in which sat
                                  ;will find ground stations
 
-           tag coor-shown noheight? noname? nocoor? noid?]  ;string, string bool, bool, bool
+           tag coor-shown noheight? noname? nocoor? noid?  ;string, string bool, bool, bool
                                                             ;used for properly creating info
                                                             ;string to display above agent.
+                                                            
+           available-configs ] ;array, configuration types 
                                                             
 to setup-sats
   create-systems satnum [ ]
@@ -48,6 +50,19 @@ to setup-sats
   
   create-sats satnum [
     let csv-data csv:from-row file-read-line
+    
+    ;randomize configs
+    let how-many-configs (random num-problem-types - min-config-types) + min-config-types
+    let possible-configs n-values num-problem-types [?]
+    let my-configs []
+    foreach n-values how-many-configs [?] [
+      ;choose a random config and add it to our available configs.
+      let current-config item (random length possible-configs) possible-configs
+      set my-configs lput current-config my-configs
+      ;remove the chosen config so we dont' choose it more than once.
+      set possible-configs remove-item current-config possible-configs 
+    ]
+    set available-configs array:from-list my-configs
     
     ;read necessary csv items
     set name item 0 csv-data

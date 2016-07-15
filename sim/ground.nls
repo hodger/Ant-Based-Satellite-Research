@@ -208,6 +208,7 @@ to refresh-uplinks
         table:put ([sat-config-pheromones] of [my-sentinel] of myself) who (get-sat-config-array self)
         ask [my-sentinel] of myself [
           table:put [sat-sum-pheromones] of [my-sentinel] of myself who 0
+          ;what? this makes no sense.
           set number-config array:length (table:get sat-config-pheromones [who] of myself) 
         ]
       ]
