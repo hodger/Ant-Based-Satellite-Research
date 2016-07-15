@@ -30,7 +30,10 @@ ants-own [ my-system
            
            is-waiting?
            
-           time-dispatched ]
+           time-dispatched 
+           
+           ;NEW
+           config-index]
 
 ;test comment
 
@@ -226,8 +229,13 @@ to drop-pheromones [concentration]
      let existing-total-pheromone-value array:item total-pheromone-values [pheromone-type] of myself
      array:set total-pheromone-values [pheromone-type] of myself (existing-total-pheromone-value + concentration)
      ;update-total-pheromones
+     
+     ;NEW
+     let existing-pheromones array:item (table:get sat-config-pheromones sat-node) [config-index] of myself
+     array:set (table:get sat-config-pheromones sat-node) [config-index] of myself (existing-pheromones + concentration)
   ]
   reset-time (sat sat-node) pheromone-type
+  reset-time-2 (sat sat-node) config-index
   ;refresh when we last put down pheromones here.
   ; we should not need to update global-pheromone-map
   ;table:put global-pheromone-map sat-node table:get [sat-pheromone-values] of my-sentinel sat-node

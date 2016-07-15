@@ -189,7 +189,7 @@ to refresh-uplinks
   ask visible [
     create-uplink-from myself
     if not member? self [connected-sats] of myself [
-      show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
+      ;show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
     set new-list lput self new-list
     
@@ -204,6 +204,12 @@ to refresh-uplinks
         ask [my-sentinel] of myself [
           update-total-pheromones 
         ]
+        ;NEW
+        table:put ([sat-config-pheromones] of [my-sentinel] of myself) who (get-sat-config-array self)
+        ask [my-sentinel] of myself [
+          table:put [sat-sum-pheromones] of [my-sentinel] of myself who 0
+          set number-config array:length (table:get sat-config-pheromones [who] of myself) 
+        ]
       ]
     ]
   ]
@@ -211,7 +217,7 @@ to refresh-uplinks
   foreach connected-sats [
     if not member? ? visible [
       ask uplink [who] of current-ground [who] of ? [ die ]
-      show (word "UPLINK LOST: " [name] of self " -X-> " [name] of ?)
+      ;show (word "UPLINK LOST: " [name] of self " -X-> " [name] of ?)
     ]
   ]
   set connected-sats new-list

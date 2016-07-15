@@ -19,7 +19,15 @@ sentinels-own [ my-ground  ;ground
                 
                 ;previous-values
                 
-                context ]  ;rules that govern what sentinel perceives as irregular behavior for systems
+                context
+                
+                number-config
+                
+                sat-config-pheromones 
+                
+                sat-sum-pheromones
+                
+                pheromones ]
 
 to setup-sentinel-network
   ; to-do track pheromones 
@@ -40,6 +48,11 @@ to setup-sentinel [a-ground]
   set ant-queues table:make
   set sat-pheromone-values table:make
   set total-pheromone-values array:from-list n-values number-pheromones [0]
+  
+  set sat-config-pheromones table:make
+  
+  set sat-sum-pheromones table:make
+  
   set participating true
   set pheromone-concentration 1
   ;set previous-values table:make
@@ -162,6 +175,8 @@ to drop-pheromones-at [a-sat a-type concentration]
   ;update-total-pheromones
   
   reset-time a-sat a-type
+  ;NEW
+  reset-time-2 a-sat [config-index] of a-sat
 end
 
 to update-total-pheromones 
@@ -174,6 +189,22 @@ to update-total-pheromones
     ]
     array:set total-pheromone-values current-index current-count
   ]
+end
+
+;NEW
+to update-sum-pheromones
+  let overall-sum 0
+  foreach table:keys sat-config-pheromones [
+    let current-sum 0
+    let current-sat ?
+    let current-configs table:get sat-config-pheromones ?
+    foreach n-values array:length current-configs [?] [
+      set current-sum current-sum + array:item current-configs ?   
+    ]
+    table:put sat-sum-pheromones current-sat current-sum
+    set overall-sum overall-sum + current-sum
+  ]   
+  set pheromones overall-sum
 end
 
 to update-previous-values

@@ -185,7 +185,7 @@ to refresh-downlinks
   ask visible [
     create-downlink-from myself
     if not member? self [connected-grounds] of myself [
-      show (word "DOWNLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
+     ; show (word "DOWNLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
     set new-list lput self new-list
   ]
@@ -194,7 +194,7 @@ to refresh-downlinks
   foreach connected-grounds [
     if not member? ? visible [
       ask downlink [who] of current-sat [who] of ? [ die ]
-      show (word "DOWNLINK LOST: " [name] of self " -X-> " [name] of ?)
+      ;show (word "DOWNLINK LOST: " [name] of self " -X-> " [name] of ?)
     ]
   ]
   set connected-grounds new-list

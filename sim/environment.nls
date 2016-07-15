@@ -5,7 +5,12 @@ globals [ number-pheromones ; number, how many pheromone types
           EVAPORATION-VALUE
           MARKOVIAN-PHEROMONE
           DEVIATION-PHEROMONE
-          total-pheromones ] ; array, sum all pheromones in the simulation.
+          total-pheromones 
+          
+          global-config-pheromones ; table, sat -> array of pheromones for each configuration
+          global-config-pheromone-times ; table, sat -> array of latest pheromone drop time for each configuration
+           
+          ] 
 
 breed [ environments environment ]
 
@@ -21,6 +26,9 @@ to setup-environment
   ;copy grounds to a temporary agentset
   let temp-grounds grounds
   let temp-list []
+  
+  set global-config-pheromones table:make
+  set global-config-pheromone-times table:make
   
   setup-sentinel-network
   
@@ -57,8 +65,10 @@ to update
     ;update total pheromones, for use when ants decide to do
     let current-sentinel ?
     ask current-sentinel [
-        update-total-pheromones 
-      ]
+        update-total-pheromones
+        ;NEW
+        update-sum-pheromones
+    ]
     foreach n-values array:length [total-pheromone-values] of current-sentinel [?] [
       let existing-pheromones array:item total-pheromones ?
       ;print existing-pheromones
@@ -66,6 +76,18 @@ to update
       ;print new-pheromones
       array:set total-pheromones ? (existing-pheromones + new-pheromones)
     ]
+  ]
+end
+
+to-report get-sat-config-array [a-sat]
+  ifelse table:has-key? global-config-pheromones [who] of a-sat [
+    report table:get global-config-pheromones [who] of a-sat 
+  ]
+  [
+    let new-config-number random num-problem-types + 1
+    let new-config-list n-values (new-config-number) [0]
+    table:put global-config-pheromones [who] of a-sat array:from-list new-config-list
+    report table:get global-config-pheromones [who] of a-sat
   ]
 end
 
@@ -94,6 +116,20 @@ to reset-time [a-sat a-type]
   ]
 end
 
+;When pheromones drop, we reset the decay timer.
+to reset-time-2 [a-sat a-config-index]
+  ifelse table:has-key? global-config-pheromone-times [who] of a-sat [
+    array:set (table:get global-config-pheromone-times [who] of a-sat) a-config-index time-numerical  
+  ]
+  [
+    let new-time-list n-values array:length (table:get global-config-pheromones [who] of a-sat) [0]
+    foreach new-time-list [
+      set new-time-list replace-item ? new-time-list time-numerical 
+    ]
+    table:put global-config-pheromone-times [who] of a-sat array:from-list new-time-list
+  ]
+end
+
 to decay-pheromones
   ; to-do
   ; must decay or everything will be ruined.
@@ -116,6 +152,31 @@ to decay-pheromones
       ]
     ] 
   ]
+  ]
+end
+
+to decay-pheromones-2 
+  if table:length global-config-pheromone-times > 0 [
+    ;keys are satellite 'who' numbers
+    foreach table:keys global-config-pheromone-times [
+      let current-sat ?
+      let current-times table:get global-config-pheromone-times ?
+      let current-pheromones table:get global-config-pheromones ?
+      foreach n-values array:length current-times [?] [
+         let current-pheromone-value array:item current-pheromones ?
+         if current-pheromone-value > 0 [
+           if time-numerical - array:item current-times ? > EVAPORATION-TIME [
+             let new-pheromone-value current-pheromone-value - EVAPORATION-VALUE
+             ;make sure the new value is 0 or above.
+             if new-pheromone-value < 0 [
+                set new-pheromone-value 0
+             ]
+             array:set current-pheromones ? new-pheromone-value
+             array:set current-times ? time-numerical
+           ]
+         ]  
+      ]
+    ] 
   ]
 end
 
