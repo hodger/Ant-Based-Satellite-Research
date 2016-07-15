@@ -10,10 +10,7 @@ Find and open `simulation.nlogo3d`, and the simulation should be ready to go.
 
 Pressing "setup" and then "go" will start satellite and ground station movement. 
 Agents in this simulation orbit with accurate (scaled) period and take Earth's rotation into account in their latitude and longitude calculation.
-Satellites and ground stations with the same frequency will attempt to connect with one another and execute and transfer commands, respectively.
-Through NetLogo's command center, you can use the `request-commands` procedure to ask a ground station to prepare a list of commands.
-The commands found in `sat-os.nls` do work, but the `ADJUST` command does not yet affect actual satellite course. That is coming soon!
+Satellites and ground stations with the same frequency will attempt to connect with one another.
 
 The current goal of this simulation is to allow for research on the concept of using individual "ants" on many different satellites to detect abnormalities
-in signals, commands, etc. Ant-based systems generally work as follows: as ants report issues, other ants can be dispatched to the area in question. When more and more ants determine that
-there is a problem, this is called a swarm. Swarms indicate that a more in-depth analysis should be performed.
+in signals, commands, etc.
