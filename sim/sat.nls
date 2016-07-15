@@ -59,10 +59,11 @@ to setup-sats
     let my-configs []
     foreach n-values how-many-configs [?] [
       ;choose a random config and add it to our available configs.
-      let current-config item (random length possible-configs) possible-configs
+      let current-config-index (random length possible-configs)
+      let current-config item current-config-index possible-configs
       set my-configs lput current-config my-configs
       ;remove the chosen config so we dont' choose it more than once
-      set possible-configs remove-item current-config possible-configs 
+      set possible-configs remove-item current-config-index possible-configs 
     ]
     set available-configs array:from-list my-configs
     set current-problems []

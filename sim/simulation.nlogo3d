@@ -4,7 +4,8 @@ __includes ["sat.nls"
             "sat-os.nls"
             "ant.nls"
             "sentinel.nls"
-            "environment.nls"]
+            "environment.nls"
+            "problem-generation.nls"]
 
 extensions [ csv table array profiler ]
 
@@ -112,22 +113,22 @@ to go
     ;update-previous-values
   ]
   if ticks > 500 [
-  ask ants [
-    ; tag-caution
-    ; this is where ants observe the satellite data
-    ; also ants not dispatched need to do their move
-    ifelse is-dispatched? [
-      go-ant
-    ]
-    [
-      if not is-waiting? [
-        move-ant ;relies on pheromone values
+    ask ants [
+      ; tag-caution
+      ; this is where ants observe the satellite data
+      ; also ants not dispatched need to do their move
+      ifelse is-dispatched? [
+        go-ant
       ]
-    ]
+      [
+        if not is-waiting? [
+          move-ant ;relies on pheromone values
+        ]
+      ]
     ;if ant is dispatched, draw it on satellite with a link to its ground
     ;else, draw it on the ground station it currently resides on.
-    draw-ant
-  ]
+      draw-ant
+    ]
   ]
   tick
 end
@@ -425,7 +426,7 @@ INPUTBOX
 550
 329
 ant-num
-0
+6
 1
 0
 Number
