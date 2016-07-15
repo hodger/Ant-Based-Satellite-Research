@@ -153,35 +153,6 @@ to manual-setup-ground [ a-name a-long a-lat a-freq ]
 end
 
 ;grounds procedure
-;Input: list of two-item lists.
-;Item 0 is to be the satellite NORAD number.
-;Item 1 is to be the command string.
-to request-commands [ the-commands ]
-  foreach the-commands [
-    let sat item 0 ?
-    let ID (word ground-ID current-process-ID)
-    ;show (word "submitting process " ID)
-    let command (word ground-ID " " current-process-ID " " time " " item 1 ?)
-    let existing-commands []
-    if table:has-key? requested-commands sat [
-       set existing-commands table:get requested-commands sat
-    ]
-    table:put requested-commands sat (sentence existing-commands command)
-    table:put command-archive ID (list sat command time)
-    set current-process-ID current-process-ID + 1
-  ]
-end
-
-to intermittent-check 
-  if length connected-sats > 0 [
-    let current-sat [sat-ID] of item (random length connected-sats) connected-sats
-    request-commands (list (list current-sat "RETURN NAME")
-                           (list current-sat "RETURN LAT") 
-                           (list current-sat "RETURN LONG"))
-  ]
-end
-
-;grounds procedure
 to refresh-uplinks
   tilt-up 90
   let visible sats-in-cone with [freq = [freq] of myself]
@@ -199,17 +170,10 @@ to refresh-uplinks
         table:put [ant-queues] of [my-sentinel] of myself who [] 
       ]
       if not table:has-key? [sat-pheromone-values] of [my-sentinel] of myself who [
-        ; [1 1] is bad. to-do
-        table:put [sat-pheromone-values] of [my-sentinel] of myself who add-sat-to-global-map self
-        ask [my-sentinel] of myself [
-          update-total-pheromones 
-        ]
         ;NEW
         table:put ([sat-config-pheromones] of [my-sentinel] of myself) who (get-sat-config-array self)
         ask [my-sentinel] of myself [
           table:put [sat-sum-pheromones] of [my-sentinel] of myself who 0
-          ;what? this makes no sense.
-          set number-config array:length (table:get sat-config-pheromones [who] of myself) 
         ]
       ]
     ]

@@ -103,53 +103,6 @@ to-report validate-report [ant-data ant-sys]
   ]
 end
 
-to-report prep-ant [an-ant a-sat]
-  ;show (word "Prepping ant " an-ant)
-  let commands [command-archive] of my-ground
-  if [pheromone-type] of an-ant = DEVIATION-PHEROMONE [
-    let previous-values []
-    show commands
-    foreach table:keys commands [
-      let current-list table:get commands ?
-      ;show current-list
-      if length current-list > 3 and member? [sat-id] of a-sat current-list 
-                                 and member? [variable] of an-ant item 1 current-list [
-        set previous-values lput item 4 current-list previous-values
-      ]
-    ]
-    ifelse is-string? previous-values or length previous-values < 2 [
-      ;abort this preperation, we don't have the data.
-      show (word "prep ant failed for " an-ant)
-      ;show previous-values
-      report false 
-    ]
-    [
-      show previous-values
-      ask an-ant [
-        set index 0
-        set average 0
-        set sum-of-squares 0
-        let delta 0
-        foreach previous-values [
-          let current-value ?
-          if is-string? current-value [
-            set current-value length ? 
-          ]
-          set index index + 1
-          set delta current-value - average
-          set average average + (delta / index)
-          set sum-of-squares sum-of-squares + delta * (current-value - average)  
-        ]
-        set std-dev sqrt (sum-of-squares / (index - 1))
-        set threshold std-dev * num-deviations
-        ;show my-sentinel
-        ;show my-system
-      ]
-      report true
-    ]
-  ]
-end
-
 to highlight-report [a-lat a-long]
   ;draw it on the gui
   create-markers 1 [
@@ -162,33 +115,22 @@ to highlight-report [a-lat a-long]
   ]
 end
 
-to drop-pheromones-at [a-sat a-type concentration]
+to drop-pheromones-at [a-sat a-config concentration]
   let sat-node [who] of a-sat
   
-  let existing-pheromone-value array:item (table:get sat-pheromone-values sat-node) a-type
-  let pheromone-array table:get sat-pheromone-values sat-node
-  array:set pheromone-array a-type (existing-pheromone-value + concentration)
-  
-  ;this updates the total pheromone value for the specified pheromone
-  let existing-total-pheromone-value array:item total-pheromone-values a-type
-  array:set total-pheromone-values a-type (existing-total-pheromone-value + concentration)
-  ;update-total-pheromones
-  
-  reset-time a-sat a-type
   ;NEW
-  reset-time-2 a-sat [config-index] of a-sat
-end
-
-to update-total-pheromones 
-  foreach n-values array:length total-pheromone-values [?] [
-    let current-index ?
-    let current-count 0
-    foreach table:keys sat-pheromone-values [
-      let current-array table:get sat-pheromone-values ?
-      set current-count current-count + array:item current-array current-index 
+  let desired-index -1
+  foreach n-values array:length [available-configs] of a-sat [?] [
+    if array:item [available-configs] of a-sat ? = a-config [
+      set desired-index ? 
     ]
-    array:set total-pheromone-values current-index current-count
   ]
+  if desired-index != -1 [
+    let existing-pheromones array:item (table:get sat-config-pheromones sat-node) desired-index
+    array:set (table:get sat-config-pheromones sat-node) desired-index (existing-pheromones + concentration)
+    reset-time a-sat desired-index
+  ]
+  ;do we need to update total pheromones?
 end
 
 ;NEW
@@ -205,23 +147,6 @@ to update-sum-pheromones
     set overall-sum overall-sum + current-sum
   ]   
   set pheromones overall-sum
-end
-
-to update-previous-values
-  let commands [command-archive] of my-ground
-  let latest-long 0
-  let latest-lat 0
-  foreach table:keys commands [
-    let current-list table:get commands ?
-    if (length current-list > 3) and (member? "LONG" item 1 current-list) [
-      set latest-long item 4 current-list
-    ]
-    if (length current-list > 3) and (member? "LAT" item 1 current-list) [
-      set latest-lat item 4 current-list
-    ]  
-  ]
-  ;table:put previous-values "LONG" latest-long
-  ;table:put previous-values "LAT" latest-lat
 end
 
 to remove-ant [an-ant a-sat]

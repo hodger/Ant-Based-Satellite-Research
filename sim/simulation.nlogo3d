@@ -1,7 +1,6 @@
 __includes ["sat.nls"
             "ground.nls"
             "util.nls"
-            "command.nls"
             "sat-os.nls"
             "ant.nls"
             "sentinel.nls"
@@ -81,14 +80,6 @@ to go
   ]
   ask sats [ ;move the sat and system.
     configure-settings
-    ask my-system [
-      if length command-queue > 0 [
-        process-commands
-      ]
-      if table:length work-queue > 0 [
-        execute
-      ]
-    ]
     let old-lat lat
     let old-long long
     let old-bear ( 360 - pitch + 90 )
@@ -106,17 +97,13 @@ to go
    ]
   ask grounds [  ;draw active uplinks
     refresh-uplinks
-    if time-numerical - last-check > check-wait-duration [
-      intermittent-check
-      set last-check time-numerical
-    ]
   ]
   ask sats [ ;draw active downlinks
     refresh-downlinks
   ]
   ask environments [
     decay-pheromones ;take away pheromones
-    update ;fix the total pheromone array
+    update ;fix the sentinel sums
   ]
   ask sentinels [
     ; to-do
@@ -149,31 +136,12 @@ end
 to communicate-up
   ; tag-caution
   ; handle ants being passed to satellites.
-
-  let commands table:make
   let ant-list []
   ;ground
   ask end1 [
-    set commands requested-commands
     set ant-list table:get [ant-queues] of my-sentinel [who] of [end2] of myself
   ]
-  ;satellite os
-  if table:length commands > 0 [
-    let ID 0
-    ask end2 [
-      ask my-system [
-        set ID table:get sat-data "ID"
-        if table:has-key? commands ID [
-          listen-commands (table:get commands ID )
-        ]
-      ]
-    ]
-    ask end1 [
-      table:remove requested-commands ID
-    ]
-  ]
   ;if we have ants in queue, we set them to dispatched.
-  let current-system [my-system] of end2
   if length ant-list > 0 [
     ;show [my-sentinel] of end1
     ;show end2
@@ -181,11 +149,11 @@ to communicate-up
       ask ant ? [
         ;don't reset ants time if they are already dispatched
         if not is-dispatched? [
-          show (word "dispatching ant to " current-system)
-          set visited lput current-system visited
+          show (word "dispatching ant to " my-sat)
+          set visited lput my-sat visited
           set is-dispatched? true
           set is-waiting? false
-          set my-system current-system
+          set my-system [my-system] of my-sat
           set time-dispatched time-numerical
         ]
       ]
@@ -200,36 +168,6 @@ to communicate-down
   ; handle ants coming back from the satellites, as well as communicating their reports.
   ; do they need to stay on-board? we'll need to make sure they don't go up and just come
   ; right back. We need them to stay on for a specified amount of time?
-
-  let output-table table:make
-  ;satellite os
-  ask end1 [ ask my-system [ set output-table transfer-output ] ]
-  ;ground
-  let current-system [my-system] of end1
-  let success false
-  if table:length output-table > 0 [
-    ask end2
-    [
-      foreach table:keys output-table [
-        ifelse table:has-key? command-archive ? [
-          let command table:get command-archive ?
-          let output table:get output-table ?
-          table:put command-archive ? (sentence command output time)
-          ;set success true
-          ask current-system [ let a CLEAR_OUTPUT_ID ? ]
-        ]
-        [
-          set success false
-          ;show (word "Received unknown process ID " ? " This should never happen.")
-        ]
-      ]
-    ]
-    ;ask end1 [
-    ;  if success [
-    ;    ask my-system [ let a-waste CLEAR_OUTPUT_ID  ]
-    ;  ]
-    ;]
-  ]
   ;check for particpation, first.
   let current-sat end1
   if [participating] of [my-sentinel] of end2 [
@@ -405,10 +343,10 @@ show-id?
 -1000
 
 MONITOR
-421
-29
-633
-74
+524
+17
+736
+62
 Frequencies
 table:to-list freq-table
 17
@@ -426,44 +364,22 @@ trails-2d?
 1
 -1000
 
-INPUTBOX
-189
-28
-291
-88
-antnum-deviation
-5
-1
-0
-Number
-
 MONITOR
-421
-176
-634
-221
+524
+164
+737
+209
 NIL
 global-pheromone-map
 17
 1
 11
 
-INPUTBOX
-297
-28
-405
-88
-antnum-markovian
-0
-1
-0
-Number
-
 MONITOR
-421
-78
-632
-123
+524
+66
+735
+111
 NIL
 visited
 17
@@ -471,10 +387,10 @@ visited
 11
 
 MONITOR
-421
-127
-633
-172
+524
+115
+736
+160
 NIL
 pheromone-time-map
 17
@@ -482,21 +398,10 @@ pheromone-time-map
 11
 
 INPUTBOX
-189
-93
-291
-153
-antnum-time
-0
-1
-0
-Number
-
-INPUTBOX
-377
-335
-532
 395
+423
+550
+483
 num-problem-types
 6
 1
@@ -504,15 +409,58 @@ num-problem-types
 Number
 
 INPUTBOX
-377
-272
-532
-332
+395
+360
+550
+420
 min-config-types
 1
 1
 0
 Number
+
+INPUTBOX
+395
+269
+550
+329
+ant-num
+0
+1
+0
+Number
+
+INPUTBOX
+576
+360
+731
+420
+min-problem-duration
+0
+1
+0
+Number
+
+INPUTBOX
+576
+424
+731
+484
+max-problem-duration
+0
+1
+0
+Number
+
+TEXTBOX
+581
+324
+731
+356
+Please input this value in ticks.
+13
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

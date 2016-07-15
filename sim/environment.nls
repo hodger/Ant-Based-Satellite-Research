@@ -5,7 +5,7 @@ globals [ number-pheromones ; number, how many pheromone types
           EVAPORATION-VALUE
           MARKOVIAN-PHEROMONE
           DEVIATION-PHEROMONE
-          total-pheromones 
+          ;total-pheromones 
           
           global-config-pheromones ; table, sat -> array of pheromones for each configuration
           global-config-pheromone-times ; table, sat -> array of latest pheromone drop time for each configuration
@@ -21,7 +21,7 @@ environments-own [
 
 to setup-environment
   set number-pheromones 2
-  set total-pheromones array:from-list (n-values number-pheromones [0])
+  ;set total-pheromones array:from-list (n-values number-pheromones [0])
   set EVAPORATION-TIME 25
   set EVAPORATION-VALUE 5
   ;copy grounds to a temporary agentset
@@ -43,7 +43,7 @@ to setup-environment
     set temp-list lput self temp-list
     ;remove ground we just used
     set temp-grounds temp-grounds with [ self != current-ground ]
-    update-total-pheromones
+    update-sum-pheromones
   ]
   
   create-environments 1 [
@@ -86,16 +86,8 @@ to update
     ;update total pheromones, for use when ants decide to do
     let current-sentinel ?
     ask current-sentinel [
-        update-total-pheromones
         ;NEW
         update-sum-pheromones
-    ]
-    foreach n-values array:length [total-pheromone-values] of current-sentinel [?] [
-      let existing-pheromones array:item total-pheromones ?
-      ;print existing-pheromones
-      let new-pheromones (array:item [total-pheromone-values] of current-sentinel ?) ;- (table:length [ant-queues] of current-sentinel)
-      ;print new-pheromones
-      array:set total-pheromones ? (existing-pheromones + new-pheromones)
     ]
   ]
 end
@@ -125,21 +117,8 @@ to-report add-sat-to-global-map [a-sat]
   ]
 end
 
-to reset-time [a-sat a-type]
-  ifelse table:has-key? pheromone-time-map [who] of a-sat [
-    array:set (table:get pheromone-time-map [who] of a-sat) a-type time-numerical 
-  ]
-  [
-    let new-time-list n-values number-pheromones [0]
-    foreach new-time-list [
-      set new-time-list replace-item ? new-time-list time-numerical 
-    ]
-    table:put pheromone-time-map [who] of a-sat array:from-list new-time-list
-  ]
-end
-
 ;When pheromones drop, we reset the decay timer.
-to reset-time-2 [a-sat a-config-index]
+to reset-time [a-sat a-config-index]
   ifelse table:has-key? global-config-pheromone-times [who] of a-sat [
     array:set (table:get global-config-pheromone-times [who] of a-sat) a-config-index time-numerical  
   ]
@@ -152,32 +131,8 @@ to reset-time-2 [a-sat a-config-index]
   ]
 end
 
+;NEW
 to decay-pheromones
-  ; to-do
-  ; must decay or everything will be ruined.
-  if table:length pheromone-time-map > 0 [
-  foreach table:keys pheromone-time-map [
-    let current-sat ?
-    let current-times table:get pheromone-time-map ?
-    let current-pheromones table:get global-pheromone-map current-sat
-    
-    foreach n-values number-pheromones [?] [
-      let current-value array:item current-pheromones ?
-      ;we don't need to evaporate if we're at the lowest pheromone value already.
-      if array:item current-pheromones ? > 1 [
-        if time-numerical - array:item current-times ? > EVAPORATION-TIME [
-          ;set the new pheromone value in the array
-          array:set current-pheromones ? current-value - EVAPORATION-VALUE
-          ;set the new time value in the array
-          array:set current-times ? time-numerical
-        ] 
-      ]
-    ] 
-  ]
-  ]
-end
-
-to decay-pheromones-2 
   if table:length global-config-pheromone-times > 0 [
     ;keys are satellite 'who' numbers
     foreach table:keys global-config-pheromone-times [
@@ -224,21 +179,18 @@ to-report get-sentinels-with [a-sat]
   report destinations
 end
 
-to spawn-ant-at [a-sentinel a-sat a-type]
-  if [participating] of a-sentinel [
-    create-ants 1 [
-      setup-basic-ant
-      ;temporary while we only have one kind of ant
-      setup-deviation-ant "freddy" 3 "LONG"
-      ;-------------------
-      set my-sentinel a-sentinel
-      set is-waiting? true
-      ask a-sentinel [
-        if prep-ant myself a-sat [
-          table:put ant-queues [who] of a-sat lput ([who] of myself) (table:get ant-queues [who] of a-sat)
-        ]
-      ]
-    ]
-  ]
-  
-end
+;to spawn-ant-at [a-sentinel a-sat a-type]
+;  if [participating] of a-sentinel [
+;    create-ants 1 [
+;      setup-basic-ant "freddy"
+;      set my-sentinel a-sentinel
+;      set is-waiting? true
+;      ask a-sentinel [
+;        if prep-ant myself a-sat [
+;          table:put ant-queues [who] of a-sat lput ([who] of myself) (table:get ant-queues [who] of a-sat)
+;        ]
+;      ]
+;    ]
+;  ]
+;  
+;end
