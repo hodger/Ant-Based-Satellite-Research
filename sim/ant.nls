@@ -4,13 +4,13 @@ breed [ ants ant ]
 
 undirected-link-breed [ connectors connector ]
 
-ants-own [ my-system
+ants-own [ ;my-system
            
            my-sentinel
            
-           threshold
+           ;threshold
            
-           variable
+           ;variable
            
            gps
            
@@ -22,7 +22,7 @@ ants-own [ my-system
            
            name
            
-           average index std-dev num-deviations sum-of-squares
+           ;average index std-dev num-deviations sum-of-squares
            
            is-dispatched?
            
@@ -133,7 +133,7 @@ to choose-config
   let selected-config-index array:item config-pheromone-array item (random (length spinner)) spinner
   set my-config-index selected-config-index
   
-  let selected-config array:item my-config-index [available-configs] of my-sat
+  let selected-config item my-config-index [available-configs] of my-sat
   set my-config selected-config
   show (word "ant " self " chose config " table:get problem-identifiers my-config)
   
@@ -145,21 +145,19 @@ to choose-config
 end
 
 to report-ant
-  let me self
   let answer 0
   ask my-sentinel [
     ;communicate with ant
-    set answer validate-report [results] of me [my-system] of me
+    set answer validate-report [my-config] of myself [results] of myself [my-system] of myself
   ]
   set results []
   if answer > 0 [
-    show (word "ant " self " is gonna drop pheromones.")
+    show (word "ant " self " is dropping pheromones.")
     drop-pheromones answer
   ]
 end
 
 to drop-pheromones [concentration]
-  show "dropping pheromones"
   let sat-node 0
   set sat-node [who] of my-sat
   ask my-sentinel [

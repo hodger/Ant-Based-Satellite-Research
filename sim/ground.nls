@@ -170,12 +170,15 @@ to refresh-uplinks
       if not table:has-key? [ant-queues] of [my-sentinel] of myself who [ 
         table:put [ant-queues] of [my-sentinel] of myself who [] 
       ]
-      if not table:has-key? [sat-pheromone-values] of [my-sentinel] of myself who [
+      if not table:has-key? [sat-config-pheromones] of [my-sentinel] of myself who [
         ;NEW
         table:put ([sat-config-pheromones] of [my-sentinel] of myself) who (get-sat-config-array self)
         ask [my-sentinel] of myself [
           table:put [sat-sum-pheromones] of [my-sentinel] of current-ground who 0
         ]
+      ]
+      if not table:has-key? [contexts] of [my-sentinel] of myself who [
+        table:put ([contexts] of [my-sentinel] of myself) who (get-sat-context self)
       ]
     ]
   ]

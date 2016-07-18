@@ -1,1 +1,15 @@
-globals []
+globals [all-problems]
+
+;randomly generate a context for a sat based on its available ant configurations.
+to-report load-context [a-sat]
+  let context-list []
+  let temp-list [available-configs] of a-sat
+  let a-length length temp-list
+  let chosen random a-length
+  foreach n-values chosen [?] [
+    let config random length temp-list
+    set context-list lput config context-list
+    set temp-list remove config temp-list 
+  ]
+  report array:from-list context-list
+end

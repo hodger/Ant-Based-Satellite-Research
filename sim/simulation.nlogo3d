@@ -76,6 +76,7 @@ to go
     set color green
     communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
   ]
+  highlight-reports
   ask grounds [ ;move the ground
     move-by-deg circ-radius deg-per-tick
   ]

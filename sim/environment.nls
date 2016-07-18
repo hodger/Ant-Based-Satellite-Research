@@ -9,8 +9,10 @@ globals [ number-pheromones ; number, how many pheromone types
           
           global-config-pheromones ; table, sat -> array of pheromones for each configuration
           global-config-pheromone-times ; table, sat -> array of latest pheromone drop time for each configuration
+          global-sat-contexts ; table, sat -> array of problem-types which should be treated as exceptions
           
           problem-identifiers ; map, problem id -> string identifier ('A', 'B', ... ,'AA')
+          highlight-queue
           ] 
 
 breed [ environments environment ]
@@ -30,7 +32,9 @@ to setup-environment
   
   set global-config-pheromones table:make
   set global-config-pheromone-times table:make
+  set global-sat-contexts table:make
   setup-problem-identifiers
+  set highlight-queue []
   
   setup-sentinel-network
   
@@ -97,23 +101,22 @@ to-report get-sat-config-array [a-sat]
     report table:get global-config-pheromones [who] of a-sat 
   ]
   [
-    ;use the length of the satellite's 'available-config' array
-    let config-number array:length [available-configs] of a-sat
+    ;use the length of the satellite's 'available-config' list
+    let config-number length [available-configs] of a-sat
     let new-config-pheromone-list n-values (config-number) [0]
     table:put global-config-pheromones ([who] of a-sat) array:from-list new-config-pheromone-list
     report table:get global-config-pheromones [who] of a-sat
   ]
 end
 
-to-report add-sat-to-global-map [a-sat] 
-  ifelse table:has-key? global-pheromone-map [who] of a-sat [
-    ;report pointer to the array.
-    report table:get global-pheromone-map [who] of a-sat
+to-report get-sat-context [a-sat]
+  ifelse table:has-key? global-sat-contexts [who] of a-sat [
+    report table:get global-sat-contexts [who] of a-sat
   ]
   [
-    let new-pheromone-list n-values number-pheromones [0]
-    table:put global-pheromone-map [who] of a-sat array:from-list new-pheromone-list
-    report table:get global-pheromone-map [who] of a-sat 
+    let context load-context a-sat
+    table:put global-sat-contexts [who] of a-sat context
+    report context
   ]
 end
 
@@ -175,8 +178,26 @@ to-report get-sentinels-with [a-sat]
       ] 
     ]
   ]
-  show destinations
+  ;show destinations
   report destinations
+end
+
+to highlight-reports
+  ;draw it on the gui
+  foreach highlight-queue [  
+    let a-type item 0 ?
+    let a-lat item 1 ?
+    let a-long item 2 ?
+    create-markers 1 [
+      set shape "x"
+      set color pink
+      set zcor 49
+      set heading 0
+      set xcor a-long / scale2d
+      set ycor a-lat / scale2d
+      set label table:get problem-identifiers a-type
+    ]
+  ]
 end
 
 ;to spawn-ant-at [a-sentinel a-sat a-type]

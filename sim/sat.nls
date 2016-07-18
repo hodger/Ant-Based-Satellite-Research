@@ -34,7 +34,7 @@ sats-own [ name  ;string
                                                             ;used for properly creating info
                                                             ;string to display above agent.
                                                             
-           available-configs ;array, configuration types
+           available-configs ;list, configuration types
            
            current-problems ] ;list, problems occuring on this satellite
                                                             
@@ -65,7 +65,7 @@ to setup-sats
       ;remove the chosen config so we dont' choose it more than once
       set possible-configs remove-item current-config-index possible-configs 
     ]
-    set available-configs array:from-list my-configs
+    set available-configs my-configs
     set current-problems []
     
     ;read necessary csv items

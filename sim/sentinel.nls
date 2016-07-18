@@ -7,9 +7,9 @@ sentinels-own [ my-ground  ;ground
                 
                 my-environment
                 
-                sat-pheromone-values  ;table, sat -> array of pheromones for each satellite
+                ;sat-pheromone-values  ;table, sat -> array of pheromones for each satellite
               
-                total-pheromone-values  ;array, sum of each satellite pheromone value
+                ;total-pheromone-values  ;array, sum of each satellite pheromone value
               
                 ant-queues  ;table, satellite -> [ list of ants ready to commit to satellite ]
                 
@@ -19,7 +19,7 @@ sentinels-own [ my-ground  ;ground
                 
                 ;previous-values
                 
-                context
+                contexts  ;table, satellite -> [list of known problems]
                 
                 number-config
                 
@@ -46,82 +46,75 @@ to setup-sentinel [a-ground]
   set xcor [long] of my-ground / scale2d
   set ycor [lat] of my-ground / scale2d
   set ant-queues table:make
-  set sat-pheromone-values table:make
-  set total-pheromone-values array:from-list n-values number-pheromones [0]
+  ;set sat-pheromone-values table:make
+  ;set total-pheromone-values array:from-list n-values number-pheromones [0]
   
   set sat-config-pheromones table:make
   
   set sat-sum-pheromones table:make
+  
+  set contexts table:make
   
   set participating true
   set pheromone-concentration 1
   ;set previous-values table:make
 end
 
-to-report validate-report [ant-data ant-sys]
+to-report validate-report [problem-type ant-data ant-sat]
   ; to-do
   ; gotta put pheromones at other satellites around, MAKE SURE THEY ARE PARTICIPATING
-  let original-sat [my-sat] of ant-sys
-  let a-gps 0
-  let a-lat 0
-  let a-long 0
-  let a-variable 0
-  let a-value 0
-  let temporary-boolean true
-  foreach ant-data [  
-    set a-gps item 0 ?
-    set a-lat item 0 a-gps
-    set a-long item 1 a-gps
-  
-    set a-variable item 1 ?
-    set a-value item 2 ?
-    ; to-do counter will increase for every hit.
-    set temporary-boolean true
-    ;highlight-report a-lat a-long
+  if member? problem-type (table:get contexts ant-sat) [
+    show ("Problem accounted for.")
+    report false
   ]
-  ;how should we validate?
   
-  ifelse temporary-boolean [
-    ;look for other satellites
+  ;Keep track of all nearby sats so we don't overload them with pheromones.
+  let sats-touched (list ant-sat)
+  foreach ant-data [
+    let a-gps item 0 ?
+    let a-lat item 0 a-gps
+    let a-long item 1 a-gps
+    request-highlighting (list problem-type a-lat a-long)
+    ; to-do counter will increase for every hit.
+    ;highlight-report a-lat a-long
     let nearby-sats []
-    ask sats with [(get-dist a-gps (list lat long) < search-radius) and (self != original-sat)] [set nearby-sats lput self nearby-sats]
+    ;Nearby sats must be close-enough, not yet touched, and have this configuration.
+    ask sats with [(get-dist a-gps (list lat long) < search-radius)
+               and (not member? self sats-touched)
+               and (member? problem-type available-configs)] [
+      set nearby-sats lput self nearby-sats
+      set sats-touched lput self sats-touched
+    ]
     foreach nearby-sats [
       let sentinel-set (turtle-set)
+      ;find all sentinels with access to this satellite.
       ask my-environment [
         set sentinel-set get-sentinels-with ? 
       ]
+      ;if there's at least one sentinel, drop pheromones at the propoer config.
       if any? sentinel-set [
         ask one-of sentinel-set [
-          drop-pheromones-at ? DEVIATION-PHEROMONE pheromone-concentration 
+          drop-pheromones-at ? problem-type pheromone-concentration 
         ]
       ]
     ]
-    report pheromone-concentration 
   ]
-  [
-    report 0
-  ]
+  ;how should we validate?
+  
+  report pheromone-concentration
 end
 
-to highlight-report [a-lat a-long]
-  ;draw it on the gui
-  create-markers 1 [
-    set shape "x"
-    set color pink
-    set zcor 49
-    set heading 0
-    set xcor a-long / scale2d
-    set ycor a-lat / scale2d
-  ]
+;args: a list containing [type, lat, long]
+to request-highlighting [a-request]
+  set highlight-queue lput a-request highlight-queue
 end
 
 to drop-pheromones-at [a-sat a-config concentration]
   let sat-node [who] of a-sat
-  
   ;NEW
   let desired-index -1
-  foreach n-values array:length [available-configs] of a-sat [?] [
-    if array:item [available-configs] of a-sat ? = a-config [
+  foreach n-values length [available-configs] of a-sat [?] [
+    if item ? [available-configs] of a-sat = a-config [
       set desired-index ? 
     ]
   ]
@@ -130,7 +123,6 @@ to drop-pheromones-at [a-sat a-config concentration]
     array:set (table:get sat-config-pheromones sat-node) desired-index (existing-pheromones + concentration)
     reset-time a-sat desired-index
   ]
-  ;do we need to update total pheromones?
 end
 
 ;NEW
