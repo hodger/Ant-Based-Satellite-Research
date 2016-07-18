@@ -36,7 +36,7 @@ sats-own [ name  ;string
                                                             
            available-configs ;list, configuration types
            
-           current-problems ] ;list, problems occuring on this satellite
+           my-problems ] ;list, problems occuring on this satellite
                                                             
 to setup-sats
   create-systems satnum [ ]
@@ -54,7 +54,7 @@ to setup-sats
     let csv-data csv:from-row file-read-line
     
     ;randomize configs
-    let how-many-configs (random num-problem-types - min-config-types) + min-config-types
+    let how-many-configs (random (num-problem-types - min-config-types)) + min-config-types
     let possible-configs n-values num-problem-types [?]
     let my-configs []
     foreach n-values how-many-configs [?] [
@@ -66,7 +66,7 @@ to setup-sats
       set possible-configs remove-item current-config-index possible-configs 
     ]
     set available-configs my-configs
-    set current-problems []
+    set my-problems []
     
     ;read necessary csv items
     set name item 0 csv-data
@@ -197,7 +197,7 @@ to setup-sats
 end
 
 to-report has-problem? [problem-id]
-  foreach current-problems [
+  foreach my-problems [
     if ? = problem-id [
       report true 
     ] 

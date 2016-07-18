@@ -4,7 +4,7 @@ breed [ ants ant ]
 
 undirected-link-breed [ connectors connector ]
 
-ants-own [ ;my-system
+ants-own [ my-system
            
            my-sentinel
            
@@ -54,7 +54,8 @@ to setup-basic-ant [a-name]
   set color yellow
   set zcor 49
   set is-dispatched? false
-  set is-waiting? false   
+  set is-waiting? false
+  set results []   
 end
 
 ;test for potential problem
@@ -108,10 +109,11 @@ end
 to choose-sat
   let spinner []
   ask my-sentinel [
-    foreach table:keys [sat-sum-pheromones] of my-sentinel [
+    foreach table:keys sat-sum-pheromones [
+      let current-sat sat ?
       let current-sum (table:get sat-sum-pheromones ?) + 1
       foreach n-values current-sum [?] [
-        set spinner lput self spinner 
+        set spinner lput current-sat spinner 
       ]  
     ]
   ]
@@ -121,20 +123,24 @@ to choose-sat
 end
 
 to choose-config
+  show my-sentinel
+  show my-sat
   let spinner []
+  ;current pheromone values for this sat.
   let config-pheromone-array table:get [sat-config-pheromones] of my-sentinel [who] of my-sat
+  show array:to-list config-pheromone-array
   foreach n-values array:length config-pheromone-array [?] [
     let current-index ?
-    foreach n-values array:item config-pheromone-array current-index [?] [
+    let current-pheromones array:item config-pheromone-array current-index
+    foreach n-values (current-pheromones + 1) [?] [
       set spinner lput current-index spinner 
     ]
   ]
   
-  let selected-config-index array:item config-pheromone-array item (random (length spinner)) spinner
-  set my-config-index selected-config-index
+  set my-config-index item (random (length spinner)) spinner
   
-  let selected-config item my-config-index [available-configs] of my-sat
-  set my-config selected-config
+  set my-config item my-config-index [available-configs] of my-sat
+  
   show (word "ant " self " chose config " table:get problem-identifiers my-config)
   
   ;update the ant queues of our sat.
@@ -148,7 +154,7 @@ to report-ant
   let answer 0
   ask my-sentinel [
     ;communicate with ant
-    set answer validate-report [my-config] of myself [results] of myself [my-system] of myself
+    set answer validate-report [my-config] of myself [results] of myself [my-sat] of myself
   ]
   set results []
   if answer > 0 [

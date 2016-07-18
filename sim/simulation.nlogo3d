@@ -16,7 +16,8 @@ globals [ scale tick-frac-of-min
           grounds-2d-list
           scale2d
           sats-by-height freq-table
-          time time-numerical ]
+          time time-numerical
+          pre-ant-ticks ]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -30,6 +31,7 @@ to setup
   set earth-radius (6371)
   set earth-rot-time (1437)
   set comm-buffer 2
+  set pre-ant-ticks 500
   random-seed 586878
 
   set freq-table table:make
@@ -40,6 +42,8 @@ to setup
 
   setup-environment
   setup-ants
+  setup-problems
+
   inspect one-of ants
   reset-ticks
 end
@@ -76,7 +80,9 @@ to go
     set color green
     communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
   ]
-  highlight-reports
+  if ticks > pre-ant-ticks [
+    highlight-reports
+  ]
   ask grounds [ ;move the ground
     move-by-deg circ-radius deg-per-tick
   ]
@@ -104,6 +110,7 @@ to go
     refresh-downlinks
   ]
   ask environments [
+    refresh-problems ;remove old problems
     decay-pheromones ;take away pheromones
     update ;fix the sentinel sums
   ]
@@ -113,11 +120,9 @@ to go
     set label pheromones
     ;update-previous-values
   ]
-  if ticks > 500 [
+  if ticks > pre-ant-ticks [
+    delegate-problems ;possibility to add new problems
     ask ants [
-      ; tag-caution
-      ; this is where ants observe the satellite data
-      ; also ants not dispatched need to do their move
       ifelse is-dispatched? [
         go-ant
       ]
@@ -401,17 +406,6 @@ pheromone-time-map
 
 INPUTBOX
 395
-423
-550
-483
-num-problem-types
-6
-1
-0
-Number
-
-INPUTBOX
-395
 360
 550
 420
@@ -438,7 +432,7 @@ INPUTBOX
 731
 420
 min-problem-duration
-0
+50
 1
 0
 Number
@@ -449,7 +443,7 @@ INPUTBOX
 731
 484
 max-problem-duration
-0
+100
 1
 0
 Number
@@ -463,6 +457,28 @@ Please input this value in ticks.
 13
 0.0
 1
+
+INPUTBOX
+394
+424
+549
+484
+num-problem-types
+6
+1
+0
+Number
+
+MONITOR
+250
+37
+493
+82
+NIL
+table:to-list global-config-pheromones
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
