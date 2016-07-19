@@ -1,7 +1,9 @@
-globals [all-problems]
+globals [all-problems
+         global-problem-removal-map]
 
 to setup-problems
   set all-problems table:make
+  set global-problem-removal-map table:make
   ask sats [
     table:put all-problems who []
   ]
@@ -36,38 +38,68 @@ to delegate-problems
 end
 
 to create-problem [a-sat a-problem] 
-  show (word "adding problem " a-problem " to " a-sat)
+  ;show (word "adding problem " a-problem " to " a-sat)
   ask a-sat [
-    set my-problems lput a-problem my-problems 
+    set my-problems lput a-problem my-problems
   ]
   let existing table:get all-problems [who] of a-sat
-  table:put all-problems [who] of a-sat lput (list time-numerical (random (max-problem-duration - min-problem-duration) + min-problem-duration)) existing 
+  let duration (random (max-problem-duration - min-problem-duration)) + min-problem-duration
+  table:put all-problems [who] of a-sat lput (list time-numerical duration) existing
+  let end-tick time-numerical + duration
+  let existing-sats []
+  if table:has-key? global-problem-removal-map end-tick [
+    set existing-sats table:get global-problem-removal-map end-tick
+  ]
+  table:put global-problem-removal-map end-tick lput [who] of a-sat existing-sats
 end
 
 to refresh-problems 
-  foreach table:keys all-problems [
-    let sat-num ?
-    let current-times table:get all-problems sat-num
-   
-    let new-times current-times
-    
-    foreach n-values length current-times [?] [
-      let current-pair item ? current-times
-      let init-time item 0 current-pair
-      let duration item 1 current-pair
-      let delta time-numerical - init-time
-      
-      if delta >= duration [
-        show (word "expiring problem index " ? " from sat " sat-num)
-        ;expire problem
-        set new-times remove-item ? new-times
-        ask sat sat-num [
-          set my-problems remove-item ? my-problems
+  if table:has-key? global-problem-removal-map time-numerical [
+    foreach remove-duplicates table:get global-problem-removal-map time-numerical [
+      let sat-num ?
+      let current-times table:get all-problems sat-num
+      let new-times current-times
+      foreach n-values length current-times [?] [
+        let current-pair item ? current-times
+        let init-time item 0 current-pair
+        let duration item 1 current-pair
+        let end-tick init-time + duration
+        if end-tick <= time-numerical [
+          ;show (word "removing problem from sat " sat-num)
+          set new-times remove-item ? new-times
+          ask sat sat-num [
+            set my-problems remove-item ? my-problems 
+          ]
         ]
-      ] 
+      ]
+      table:put all-problems sat-num new-times  
     ]
-    table:put all-problems sat-num new-times 
+    table:remove global-problem-removal-map time-numerical 
   ]
+  
+  ;foreach table:keys all-problems [
+  ;  let sat-num ?
+  ;  let current-times table:get all-problems sat-num
+  ; 
+  ;  let new-times current-times
+  ;  
+  ;  foreach n-values length current-times [?] [
+  ;    let current-pair item ? current-times
+  ;    let init-time item 0 current-pair
+  ;    let duration item 1 current-pair
+  ;    let delta time-numerical - init-time
+  ;    
+  ;    if delta >= duration [
+  ;      show (word "expiring problem index " ? " from sat " sat-num)
+  ;      ;expire problem
+  ;      set new-times remove-item ? new-times
+  ;      ask sat sat-num [
+  ;        set my-problems remove-item ? my-problems
+  ;      ]
+  ;    ] 
+  ;  ]
+  ;  table:put all-problems sat-num new-times 
+  ;]
 end
 
 ;randomly generate a context for a sat based on its available ant configurations.

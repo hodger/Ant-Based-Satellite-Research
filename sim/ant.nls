@@ -103,7 +103,7 @@ to choose-sentinel
   ]
   let selected-sentinel item (random (length spinner)) spinner
   set my-sentinel selected-sentinel
-  show (word "ant " self " chose " selected-sentinel)
+  ;show (word "ant " self " chose " selected-sentinel)
 end
 
 to choose-sat
@@ -119,16 +119,16 @@ to choose-sat
   ]
   let selected-sat item (random (length spinner)) spinner
   set my-sat selected-sat
-  show (word "ant " self " chose " selected-sat)  
+  ;show (word "ant " self " chose " selected-sat)  
 end
 
 to choose-config
-  show my-sentinel
-  show my-sat
+  ;show my-sentinel
+  ;show my-sat
   let spinner []
   ;current pheromone values for this sat.
   let config-pheromone-array table:get [sat-config-pheromones] of my-sentinel [who] of my-sat
-  show array:to-list config-pheromone-array
+  ;show array:to-list config-pheromone-array
   foreach n-values array:length config-pheromone-array [?] [
     let current-index ?
     let current-pheromones array:item config-pheromone-array current-index
@@ -141,7 +141,7 @@ to choose-config
   
   set my-config item my-config-index [available-configs] of my-sat
   
-  show (word "ant " self " chose config " table:get problem-identifiers my-config)
+  show (word "ant " self " chose config " table:get problem-identifiers my-config " of " my-sat)
   
   ;update the ant queues of our sat.
   let existing-queue table:get [ant-queues] of my-sentinel ([who] of my-sat)

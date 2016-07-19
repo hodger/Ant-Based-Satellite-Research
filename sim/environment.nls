@@ -205,6 +205,7 @@ to highlight-reports
     set last-lat a-lat
     set last-long a-long
   ]
+  set highlight-queue []
 end
 
 ;to spawn-ant-at [a-sentinel a-sat a-type]

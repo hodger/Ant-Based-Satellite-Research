@@ -147,5 +147,5 @@ to remove-ant [an-ant a-sat]
   show (word "removing ant " an-ant " from " a-sat)
   let existing-ants table:get ant-queues [who] of a-sat
   table:put ant-queues [who] of a-sat remove [who] of an-ant existing-ants
-  show table:get ant-queues [who] of a-sat
+  ;show table:get ant-queues [who] of a-sat
 end
