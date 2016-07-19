@@ -158,7 +158,7 @@ to communicate-up
       ask ant ? [
         ;don't reset ants time if they are already dispatched
         if not is-dispatched? [
-          show (word "dispatching ant to " my-sat)
+          ;show (word "dispatching ant to " my-sat)
           set visited lput my-sat visited
           set is-dispatched? true
           set is-waiting? false
@@ -210,6 +210,10 @@ to communicate-down
     ]
   ]
 end
+
+to end-simulation
+
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 0
@@ -241,10 +245,10 @@ ticks
 30.0
 
 INPUTBOX
-18
-121
-96
-181
+19
+171
+97
+231
 satnum
 25
 1
@@ -256,7 +260,7 @@ BUTTON
 26
 170
 67
-NIL
+Setup Simulation
 setup
 NIL
 1
@@ -269,10 +273,10 @@ NIL
 1
 
 SWITCH
-18
-251
-127
-284
+19
+301
+128
+334
 show-name?
 show-name?
 1
@@ -280,10 +284,10 @@ show-name?
 -1000
 
 SWITCH
-18
-291
-127
-324
+19
+341
+128
+374
 show-height?
 show-height?
 1
@@ -295,7 +299,7 @@ BUTTON
 74
 171
 115
-NIL
+Begin Simulation
 go
 T
 1
@@ -308,10 +312,10 @@ NIL
 0
 
 INPUTBOX
-18
-185
-173
-245
+19
+235
+174
+295
 tick-frac
 0.001
 1
@@ -319,10 +323,10 @@ tick-frac
 Number
 
 INPUTBOX
-101
-121
-172
-181
+102
+171
+173
+231
 groundnum
 5
 1
@@ -330,10 +334,10 @@ groundnum
 Number
 
 SWITCH
-134
-251
-238
-284
+135
+301
+239
+334
 show-coor?
 show-coor?
 1
@@ -341,10 +345,10 @@ show-coor?
 -1000
 
 SWITCH
-134
-291
-238
-324
+135
+341
+239
+374
 show-id?
 show-id?
 1
@@ -363,10 +367,10 @@ table:to-list freq-table
 11
 
 SWITCH
-17
-329
-123
-362
+18
+379
+124
+412
 trails-2d?
 trails-2d?
 0
@@ -481,6 +485,23 @@ table:to-list global-problem-removal-map
 17
 1
 11
+
+BUTTON
+19
+121
+171
+163
+End Simulation
+end-simulation
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
 
 @#$#@#$#@
 ## WHAT IS IT?

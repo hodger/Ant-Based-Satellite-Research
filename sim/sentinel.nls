@@ -6,18 +6,12 @@ breed [markers marker]
 sentinels-own [ my-ground  ;ground
                 
                 my-environment
-                
-                ;sat-pheromone-values  ;table, sat -> array of pheromones for each satellite
-              
-                ;total-pheromone-values  ;array, sum of each satellite pheromone value
               
                 ant-queues  ;table, satellite -> [ list of ants ready to commit to satellite ]
                 
                 participating  ;boolean
                 
                 pheromone-concentration
-                
-                ;previous-values
                 
                 contexts  ;table, satellite -> [list of known problems]
                 

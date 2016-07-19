@@ -8,21 +8,11 @@ ants-own [ my-system
            
            my-sentinel
            
-           ;threshold
-           
-           ;variable
-           
            gps
            
            results
            
-           species
-           
-           ;risk-pieces
-           
            name
-           
-           ;average index std-dev num-deviations sum-of-squares
            
            is-dispatched?
            
@@ -35,7 +25,17 @@ ants-own [ my-system
            
            my-config
            
-           my-sat ]
+           my-sat 
+           
+           info-visited-sentinels
+           
+           info-visited-sats
+           
+           info-state-times 
+           
+           info-visited-configs
+           
+           info-detected-probs ]
 
 ;test comment
 
@@ -55,6 +55,11 @@ to setup-basic-ant [a-name]
   set zcor 49
   set is-dispatched? false
   set is-waiting? false
+  set info-visited-sentinels []
+  set info-visited-sats []
+  set info-state-times array:from-list [0 0 0]
+  set info-visited-configs []
+  set info-detected-probs 0
   set results []   
 end
 
@@ -103,6 +108,7 @@ to choose-sentinel
   ]
   let selected-sentinel item (random (length spinner)) spinner
   set my-sentinel selected-sentinel
+  set info-visited-sentinels lput my-sentinel info-visited-sentinels
   ;show (word "ant " self " chose " selected-sentinel)
 end
 
@@ -119,6 +125,7 @@ to choose-sat
   ]
   let selected-sat item (random (length spinner)) spinner
   set my-sat selected-sat
+  set info-visited-sats lput my-sat info-visited-sats
   ;show (word "ant " self " chose " selected-sat)  
 end
 
@@ -140,6 +147,8 @@ to choose-config
   set my-config-index item (random (length spinner)) spinner
   
   set my-config item my-config-index [available-configs] of my-sat
+  
+  set info-visited-configs lput my-config info-visited-configs
   
   show (word "ant " self " chose config " table:get problem-identifiers my-config " of " my-sat)
   
