@@ -24,7 +24,7 @@ environments-own [
 to setup-environment
   set number-pheromones 2
   ;set total-pheromones array:from-list (n-values number-pheromones [0])
-  set EVAPORATION-TIME 25
+  set EVAPORATION-TIME 10
   set EVAPORATION-VALUE 5
   ;copy grounds to a temporary agentset
   let temp-grounds grounds
@@ -184,19 +184,26 @@ end
 
 to highlight-reports
   ;draw it on the gui
+  let last-lat 0
+  let last-long 0
+  
   foreach highlight-queue [  
     let a-type item 0 ?
     let a-lat item 1 ?
     let a-long item 2 ?
-    create-markers 1 [
-      set shape "x"
-      set color pink
-      set zcor 49
-      set heading 0
-      set xcor a-long / scale2d
-      set ycor a-lat / scale2d
-      set label table:get problem-identifiers a-type
+    if get-dist (list last-lat last-long) (list a-lat a-long) > 10 [
+      create-markers 1 [
+        set shape "x"
+        set color pink
+        set zcor 49
+        set heading 0
+        set xcor a-long / scale2d
+        set ycor a-lat / scale2d
+        set label table:get problem-identifiers a-type
+      ]
     ]
+    set last-lat a-lat
+    set last-long a-long
   ]
 end
 

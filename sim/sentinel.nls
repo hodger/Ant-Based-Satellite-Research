@@ -70,11 +70,12 @@ to-report validate-report [problem-type ant-data ant-sat]
   
   ;Keep track of all nearby sats so we don't overload them with pheromones.
   let sats-touched (list ant-sat)
-  show ant-data
+  ;show ant-data
   foreach ant-data [
     let a-gps ?
     let a-lat item 0 a-gps
     let a-long item 1 a-gps
+    
     request-highlighting (list problem-type a-lat a-long)
     ; to-do counter will increase for every hit.
     ;highlight-report a-lat a-long

@@ -110,9 +110,11 @@ to go
     refresh-downlinks
   ]
   ask environments [
-    refresh-problems ;remove old problems
-    decay-pheromones ;take away pheromones
-    update ;fix the sentinel sums
+    if ticks > pre-ant-ticks [
+      refresh-problems ;remove old problems
+      decay-pheromones ;take away pheromones
+      update ;fix the sentinel sums
+    ]
   ]
   ask sentinels [
     ; to-do
@@ -350,10 +352,10 @@ show-id?
 -1000
 
 MONITOR
-524
-17
-736
-62
+458
+20
+670
+65
 Frequencies
 table:to-list freq-table
 17
@@ -372,10 +374,10 @@ trails-2d?
 -1000
 
 MONITOR
-524
-164
-737
-209
+458
+167
+671
+212
 NIL
 global-pheromone-map
 17
@@ -383,10 +385,10 @@ global-pheromone-map
 11
 
 MONITOR
-524
-66
-735
-111
+458
+69
+669
+114
 NIL
 visited
 17
@@ -394,10 +396,10 @@ visited
 11
 
 MONITOR
-524
-115
-736
-160
+458
+118
+670
+163
 NIL
 pheromone-time-map
 17
@@ -405,21 +407,21 @@ pheromone-time-map
 11
 
 INPUTBOX
-395
-360
-550
-420
+329
+363
+484
+423
 min-config-types
-1
+3
 1
 0
 Number
 
 INPUTBOX
-395
-269
-550
 329
+272
+484
+332
 ant-num
 6
 1
@@ -427,10 +429,10 @@ ant-num
 Number
 
 INPUTBOX
-576
-360
-731
-420
+510
+363
+665
+423
 min-problem-duration
 50
 1
@@ -438,10 +440,10 @@ min-problem-duration
 Number
 
 INPUTBOX
-576
-424
-731
-484
+510
+427
+665
+487
 max-problem-duration
 100
 1
@@ -449,31 +451,31 @@ max-problem-duration
 Number
 
 TEXTBOX
-581
-324
-731
-356
+515
+327
+665
+359
 Please input this value in ticks.
 13
 0.0
 1
 
 INPUTBOX
-394
-424
-549
-484
+328
+427
+483
+487
 num-problem-types
-6
+18
 1
 0
 Number
 
 MONITOR
-250
-37
-493
-82
+184
+40
+427
+85
 NIL
 table:to-list global-config-pheromones
 17

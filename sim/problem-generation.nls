@@ -23,12 +23,12 @@ to delegate-problems
       let a-num random 50
       if a-num = 1 [
         foreach [available-configs] of current-sat [
-          ;if this problem isn't already active, it's available for us to pick.
+          ;if this problem isn't already active, it's available for us to pick
           if not member? ? [my-problems] of current-sat [
             set remaining-problems lput ? remaining-problems 
           ]
         ]
-        let problem-choice random (length remaining-problems)
+        let problem-choice item (random (length remaining-problems)) remaining-problems
         create-problem current-sat problem-choice
       ]
     ]
@@ -36,6 +36,7 @@ to delegate-problems
 end
 
 to create-problem [a-sat a-problem] 
+  show (word "adding problem " a-problem " to " a-sat)
   ask a-sat [
     set my-problems lput a-problem my-problems 
   ]
@@ -47,19 +48,25 @@ to refresh-problems
   foreach table:keys all-problems [
     let sat-num ?
     let current-times table:get all-problems sat-num
+   
+    let new-times current-times
+    
     foreach n-values length current-times [?] [
       let current-pair item ? current-times
       let init-time item 0 current-pair
       let duration item 1 current-pair
       let delta time-numerical - init-time
+      
       if delta >= duration [
+        show (word "expiring problem index " ? " from sat " sat-num)
         ;expire problem
+        set new-times remove-item ? new-times
         ask sat sat-num [
           set my-problems remove-item ? my-problems
         ]
-        table:put all-problems sat-num remove-item ? current-times 
       ] 
-    ] 
+    ]
+    table:put all-problems sat-num new-times 
   ]
 end
 
