@@ -38,7 +38,7 @@ to setup-environment
   
   setup-sentinel-network
   
-  create-sentinels 18 [
+  create-sentinels count temp-grounds [
     ;hide-turtle
     let current-ground one-of temp-grounds    
     

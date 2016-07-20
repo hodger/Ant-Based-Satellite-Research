@@ -166,6 +166,7 @@ to refresh-uplinks
     set new-list lput self new-list
     
     ;check for participation, first. Otherwise don't add a sat to its ant-queue keys.
+    
     if [participating] of [my-sentinel] of myself [
       if not table:has-key? [ant-queues] of [my-sentinel] of myself who [ 
         table:put [ant-queues] of [my-sentinel] of myself who [] 

@@ -59,7 +59,7 @@ to-report validate-report [problem-type ant-data ant-sat]
   ; gotta put pheromones at other satellites around, MAKE SURE THEY ARE PARTICIPATING
   if member? problem-type (table:get contexts [who] of ant-sat) [
     show ("Problem accounted for.")
-    report false
+    report 0
   ]
   
   ;Keep track of all nearby sats so we don't overload them with pheromones.
