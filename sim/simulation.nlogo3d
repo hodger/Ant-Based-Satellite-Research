@@ -17,7 +17,8 @@ globals [ scale tick-frac-of-min
           scale2d
           sats-by-height freq-table
           time time-numerical
-          pre-ant-ticks ]
+          pre-ant-ticks
+          END-SIM? ]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -26,6 +27,7 @@ to setup
   clear-all
   file-close-all
   stop-inspecting-dead-agents
+  set END-SIM? false
   set scale 1000 ;Global to scale down kilometers and minutes
   set scale2d 4
   set earth-radius (6371)
@@ -44,7 +46,7 @@ to setup
   setup-ants
   setup-problems
 
-  inspect one-of ants
+  ;inspect one-of ants
   reset-ticks
 end
 
@@ -70,75 +72,77 @@ end
 
 ;Continuously-called procedure.
 to go
-  set time get-time
-  set time-numerical get-time-numerical
-  ask uplinks [ ;act on active uplinks
-    set color red
-    communicate-up ;here ants are possibly dispatched.
-  ]
-  ask downlinks [ ;act on active downlinks
-    set color green
-    communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
-  ]
-  if ticks > pre-ant-ticks [
-    highlight-reports
-  ]
-  ask grounds [ ;move the ground
-    move-by-deg circ-radius deg-per-tick
-  ]
-  ask sats [ ;move the sat and system.
-    configure-settings
-    let old-lat lat
-    let old-long long
-    let old-bear ( 360 - pitch + 90 )
-    move-by-deg circ-radius deg-per-tick
-    let new-coors update-coor old-lat old-long old-bear deg-per-tick
-    set lat item 0 new-coors
-    set long item 1 new-coors
-    ask my-system [
-       update-var list "LAT" [lat] of myself
-       update-var list "LONG" [long] of myself
-
-       ;2d plotting
-       move
-     ]
-   ]
-  ask grounds [  ;draw active uplinks
-    refresh-uplinks
-  ]
-  ask sats [ ;draw active downlinks
-    refresh-downlinks
-  ]
-  ask environments [
+  if not END-SIM? [
+    set time get-time
+    set time-numerical get-time-numerical
+    ask uplinks [ ;act on active uplinks
+      set color red
+      communicate-up ;here ants are possibly dispatched.
+    ]
+    ask downlinks [ ;act on active downlinks
+      set color green
+      communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
+    ]
     if ticks > pre-ant-ticks [
-      refresh-problems ;remove old problems
-      decay-pheromones ;take away pheromones
-      update ;fix the sentinel sums
+      highlight-reports
     ]
-  ]
-  ask sentinels [
-    ; to-do
-    ; this is where the sentinels draw the pheromones and such
-    set label pheromones
-    ;update-previous-values
-  ]
-  if ticks > pre-ant-ticks [
-    delegate-problems ;possibility to add new problems
-    ask ants [
-      ifelse is-dispatched? [
-        go-ant
+    ask grounds [ ;move the ground
+      move-by-deg circ-radius deg-per-tick
+    ]
+    ask sats [ ;move the sat and system.
+      configure-settings
+      let old-lat lat
+      let old-long long
+      let old-bear ( 360 - pitch + 90 )
+      move-by-deg circ-radius deg-per-tick
+      let new-coors update-coor old-lat old-long old-bear deg-per-tick
+      set lat item 0 new-coors
+      set long item 1 new-coors
+      ask my-system [
+        update-var list "LAT" [lat] of myself
+        update-var list "LONG" [long] of myself
+
+        ;2d plotting
+        move
       ]
-      [
-        if not is-waiting? [
-          move-ant ;relies on pheromone values
+    ]
+    ask grounds [  ;draw active uplinks
+      refresh-uplinks
+    ]
+    ask sats [ ;draw active downlinks
+      refresh-downlinks
+    ]
+    ask environments [
+      if ticks > pre-ant-ticks [
+        refresh-problems ;remove old problems
+        decay-pheromones ;take away pheromones
+        update ;fix the sentinel sums
+      ]
+    ]
+    ask sentinels [
+      ; to-do
+      ; this is where the sentinels draw the pheromones and such
+      set label pheromones
+      ;update-previous-values
+    ]
+    if ticks > pre-ant-ticks [
+      delegate-problems ;possibility to add new problems
+      ask ants [
+        ifelse is-dispatched? [
+          go-ant
         ]
+        [
+          if not is-waiting? [
+            move-ant ;relies on pheromone values
+          ]
+        ]
+        ;if ant is dispatched, draw it on satellite with a link to its ground
+        ;else, draw it on the ground station it currently resides on.
+        draw-ant
       ]
-    ;if ant is dispatched, draw it on satellite with a link to its ground
-    ;else, draw it on the ground station it currently resides on.
-      draw-ant
     ]
+    tick
   ]
-  tick
 end
 
 ;uplink (satellite listen) procedure
@@ -178,8 +182,11 @@ to communicate-down
   ; do they need to stay on-board? we'll need to make sure they don't go up and just come
   ; right back. We need them to stay on for a specified amount of time?
   ;check for particpation, first.
+  ;show end1
+ ; show end2
   let current-sat end1
-  if [participating] of [my-sentinel] of end2 [
+  if [participating] of [my-sentinel] of end2
+      and (table:has-key? [ant-queues] of [my-sentinel] of end2 [who] of end1) [
     let ant-list table:get [ant-queues] of [my-sentinel] of end2 [who] of end1
     if length ant-list > 0 [
       foreach ant-list [
@@ -212,7 +219,21 @@ to communicate-down
 end
 
 to end-simulation
-
+  set END-SIM? true
+  file-open "end-of-sim-report.txt"
+  file-print "SENTINELS VISITED"
+  ask ants [
+    file-show info-visited-sentinels
+  ]
+  file-print "SATELLITES VISITED"
+  ask ants [
+    file-show info-visited-sats
+  ]
+  file-print "CONFIGS VISITED"
+  ask ants [
+    file-show info-visited-configs
+  ]
+  file-close
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -250,7 +271,7 @@ INPUTBOX
 97
 231
 satnum
-25
+100
 1
 0
 Number
@@ -357,9 +378,9 @@ show-id?
 
 MONITOR
 458
-20
-670
-65
+15
+768
+60
 Frequencies
 table:to-list freq-table
 17
