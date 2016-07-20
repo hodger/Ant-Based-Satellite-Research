@@ -22,7 +22,7 @@ to delegate-problems
     if (workaround = true) [
       ;give a new problem
       let remaining-problems []
-      let a-num random 50
+      let a-num random 100
       if a-num = 1 [
         foreach [available-configs] of current-sat [
           ;if this problem isn't already active, it's available for us to pick
@@ -58,22 +58,37 @@ to refresh-problems
     foreach remove-duplicates table:get global-problem-removal-map time-numerical [
       let sat-num ?
       let current-times table:get all-problems sat-num
+      
       let new-times current-times
+      let new-problems [my-problems] of sat sat-num
+      
       foreach n-values length current-times [?] [
+        ;show (word "sat " sat-num " prior problems: " new-times)
+        ;show (word "sat " sat-num " prior problem list: " new-problems)
+        ;use static lists to update these values
         let current-pair item ? current-times
         let init-time item 0 current-pair
         let duration item 1 current-pair
         let end-tick init-time + duration
+        let current-problem item ? [my-problems] of sat sat-num
+        
         if end-tick <= time-numerical [
-          ;show (word "removing problem from sat " sat-num)
-          set new-times remove-item ? new-times
-          ask sat sat-num [
-            set my-problems remove-item ? my-problems 
-          ]
+          ;show (word "pair for removal: " current-pair)
+          ;show (word "problem for removal:" current-problem)
+          ;remove the values from our dynamic lists
+          set new-times remove current-pair new-times
+          set new-problems remove current-problem new-problems
+          ;show (word "sat " sat-num " removed problems: " new-times)
+          ;show (word "sat " sat-num " updated problem list: " new-problems)
         ]
+      ]
+      ;set our static lists to the adjusted dynamic lists
+      ask sat sat-num [
+        set my-problems new-problems 
       ]
       table:put all-problems sat-num new-times  
     ]
+    ;remove this time from our map.
     table:remove global-problem-removal-map time-numerical 
   ]
   
