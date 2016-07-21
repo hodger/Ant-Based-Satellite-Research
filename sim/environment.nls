@@ -197,8 +197,8 @@ to highlight-reports
         set color pink
         set zcor 49
         set heading 0
-        set xcor a-long / scale2d
-        set ycor a-lat / scale2d
+        set xcor a-long / scale-2d
+        set ycor a-lat / scale-2d
         set label table:get problem-identifiers a-type
       ]
     ]

@@ -1,13 +1,12 @@
 globals [ geo-coors ]
 
 breed [ sats sat ]
+breed [ sats-2d sat-2d ]
 
 ;sat variables
 sats-own [ name  ;string
 
            lat long  ;float, longitude for geosynchronous sats
-           
-           my-system ;sat-os agent
            
            connected-grounds  ;list, grounds with active downlink from this sat
            
@@ -33,21 +32,54 @@ sats-own [ name  ;string
            tag coor-shown noheight? noname? nocoor? noid?  ;string, string bool, bool, bool
                                                             ;used for properly creating info
                                                             ;string to display above agent.
+           
+           my-sat-2d
                                                             
            available-configs ;list, configuration types
            
            my-problems ] ;list, problems occuring on this satellite
+
+sats-2d-own [ my-sat
+              lat
+              long 
+              draw-lat
+              draw-long]
+
+to setup-sat-2d [ a-sat a-lat a-long ]
+  set my-sat a-sat
+  set zcor 49
+  set heading 0
+  update-coors a-lat a-long
+  set color white
+  set xcor draw-long
+  set ycor draw-lat
+end
+
+to update-coors [ a-lat a-long ]
+  set lat a-lat
+  set long a-long
+  set draw-lat lat / scale-2d
+  set draw-long long / scale-2d
+end
+
+;2d plotting procedures
+
+to move
+  facexyz draw-long draw-lat zcor 
+  let move-dist get-dist (list xcor ycor) (list (draw-long) (draw-lat))
+  fd move-dist
+end
                                                             
 to setup-sats
-  create-systems satnum [ ]
-  set sys-list []
-  ask systems [ set sys-list lput self sys-list ]
+  create-sats-2d satnum [ ]
+  let sats-2d-list []
+  ask sats-2d [ set sats-2d-list lput self sats-2d-list ]
   
   set geo-coors table:make
   
   file-open "res/UCS_Satellite_Database_1-1-16.csv"
   let waste csv:from-row file-read-line ;gets rid of the first line (column definitions)
-  let sys-count 0
+  let sats-2d-count 0
   let freq-count 0
   
   create-sats satnum [
@@ -91,19 +123,15 @@ to setup-sats
         [set long 0 show (word name " has no long. Setting to 0")]
         [set long read-from-string remove "," long]
       ]
-    
     if is-string? sat-ID
       [set sat-ID (read-from-string remove "," sat-ID)]
-
     if is-string? circ-radius
       [set circ-radius (read-from-string remove "," circ-radius)]
-
     if is-string? inclination
       [ifelse inclination = ""
         [set inclination 0 show (word name " has no inclination. Setting to 0")]
         [set inclination read-from-string remove "," inclination]
       ]
-
     if is-string? period
       [ifelse period = ""
         [set period (1437) show (word name " has no period. Setting to 35700")]
@@ -172,26 +200,14 @@ to setup-sats
        tilt-down 90
       ]
 
-      ;OS setup
-
-      set my-system item sys-count sys-list
-      ask (item sys-count sys-list) [
-        set my-sat myself
-        setup-system (list (list "NAME" [name] of myself)
-                           (list "LAT" [lat] of myself)
-                           (list "LONG" [long] of myself)
-                           (list "FREQ" [freq] of myself)
-                           (list "ID" [sat-ID] of myself))
-        set zcor 49
-        set heading 0
-        set draw-long table:get sat-data "LONG"
-        set draw-lat table:get sat-data "LAT"
-        set xcor table:get sat-data "LONG" / scale2d
-        set ycor table:get sat-data "LAT" / scale2d
-        set color white
-        ;pen-down
+      ;2D setup
+      ask (item sats-2d-count sats-2d-list) [
+        setup-sat-2d myself [lat] of myself [long] of myself
       ]
-      set sys-count sys-count + 1
+      
+      set my-sat-2d item sats-2d-count sats-2d-list
+      
+      set sats-2d-count sats-2d-count + 1
   ]
   file-close
 end
@@ -217,7 +233,7 @@ to refresh-downlinks
     ]
     set new-list lput self new-list
   ]
-  ifelse length connected-grounds > 0 [ ask my-system [ set color green ] ] [ ask my-system [ set color white ] ]
+  ifelse length connected-grounds > 0 [ ask my-sat-2d [ set color green ] ] [ ask my-sat-2d [ set color white ] ]
   let current-sat self
   foreach connected-grounds [
     if not member? ? visible [

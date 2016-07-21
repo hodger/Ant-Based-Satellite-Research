@@ -1,7 +1,6 @@
 __includes ["sat.nls"
             "ground.nls"
             "util.nls"
-            "sat-os.nls"
             "ant.nls"
             "sentinel.nls"
             "environment.nls"
@@ -14,7 +13,7 @@ globals [ scale tick-frac-of-min
           comm-buffer
           sys-list
           grounds-2d-list
-          scale2d
+          scale-2d
           sats-by-height freq-table
           time time-numerical
           pre-ant-ticks
@@ -29,7 +28,7 @@ to setup
   stop-inspecting-dead-agents
   set END-SIM? false
   set scale 1000 ;Global to scale down kilometers and minutes
-  set scale2d 4
+  set scale-2d 4
   set earth-radius (6371)
   set earth-rot-time (1437)
   set comm-buffer 2
@@ -62,8 +61,8 @@ to generate-grounds
        set shape "target"
        set color red
        set zcor 49
-       set xcor item 0 ? / scale2d
-       set ycor item 1 ? / scale2d
+       set xcor item 0 ? / scale-2d
+       set ycor item 1 ? / scale-2d
       ]
       set num num + 1
     ]
@@ -98,13 +97,10 @@ to go
       let new-coors update-coor old-lat old-long old-bear deg-per-tick
       set lat item 0 new-coors
       set long item 1 new-coors
-      ask my-system [
-        update-var list "LAT" [lat] of myself
-        update-var list "LONG" [long] of myself
-
-        ;2d plotting
-        move
-      ]
+    ]
+    ask sats-2d [
+      update-coors [lat] of my-sat [long] of my-sat
+      move
     ]
     ask grounds [  ;draw active uplinks
       refresh-uplinks
@@ -166,7 +162,7 @@ to communicate-up
           set visited lput my-sat visited
           set is-dispatched? true
           set is-waiting? false
-          set my-system [my-system] of my-sat
+          set my-sat-2d [my-sat-2d] of my-sat
           set time-dispatched time-numerical
         ]
       ]
@@ -207,7 +203,7 @@ to communicate-down
                 ask my-sentinel [
                   remove-ant myself current-sat
                 ]
-                set my-system NO_VAL
+                set my-sat-2d NO_VAL
                 set my-sentinel NO_VAL
               ]
             ]
@@ -220,6 +216,9 @@ end
 
 to end-simulation
   set END-SIM? true
+  if file-exists? "end-of-sim-report.txt" [
+    file-delete "end-of-sim-report.txt"
+  ]
   file-open "end-of-sim-report.txt"
   file-print "SENTINELS VISITED"
   ask ants [
@@ -271,7 +270,7 @@ INPUTBOX
 97
 231
 satnum
-100
+25
 1
 0
 Number
@@ -378,9 +377,9 @@ show-id?
 
 MONITOR
 458
-15
-768
-60
+19
+668
+64
 Frequencies
 table:to-list freq-table
 17

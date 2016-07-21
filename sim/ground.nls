@@ -109,8 +109,8 @@ to setup-ground
        set color red
        
        set zcor 49
-       set xcor [long] of myself / scale2d
-       set ycor [lat] of myself / scale2d
+       set xcor [long] of myself / scale-2d
+       set ycor [lat] of myself / scale-2d
     ]
     set my-ground-2d item grounds-2d-count grounds-2d-list
     set grounds-2d-count grounds-2d-count + 1

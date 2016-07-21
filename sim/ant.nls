@@ -4,7 +4,7 @@ breed [ ants ant ]
 
 undirected-link-breed [ connectors connector ]
 
-ants-own [ my-system
+ants-own [ my-sat-2d
            
            my-sentinel
            
@@ -76,8 +76,8 @@ end
 
 to draw-ant
   ifelse is-dispatched? [
-    set xcor [xcor] of my-system
-    set ycor [ycor] of my-system
+    set xcor [xcor] of my-sat-2d
+    set ycor [ycor] of my-sat-2d
     if not any? my-connectors [
       create-connector-with my-sentinel
     ]

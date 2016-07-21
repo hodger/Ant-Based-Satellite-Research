@@ -37,8 +37,8 @@ to setup-sentinel [a-ground]
   set shape "target"
   set color red
   set zcor 49
-  set xcor [long] of my-ground / scale2d
-  set ycor [lat] of my-ground / scale2d
+  set xcor [long] of my-ground / scale-2d
+  set ycor [lat] of my-ground / scale-2d
   set ant-queues table:make
   ;set sat-pheromone-values table:make
   ;set total-pheromone-values array:from-list n-values number-pheromones [0]
