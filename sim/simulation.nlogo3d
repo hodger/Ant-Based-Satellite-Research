@@ -290,9 +290,9 @@ ticks
 
 INPUTBOX
 19
-171
-97
-231
+206
+152
+266
 satnum
 100
 1
@@ -302,7 +302,7 @@ Number
 BUTTON
 20
 63
-171
+291
 96
 Setup Simulation
 setup
@@ -318,9 +318,9 @@ NIL
 
 SWITCH
 21
-332
+357
 130
-365
+390
 show-name?
 show-name?
 1
@@ -329,9 +329,9 @@ show-name?
 
 SWITCH
 21
-372
+397
 130
-405
+430
 show-height?
 show-height?
 1
@@ -341,7 +341,7 @@ show-height?
 BUTTON
 20
 99
-172
+291
 132
 Begin Simulation
 go
@@ -356,10 +356,10 @@ NIL
 0
 
 INPUTBOX
-19
-235
-174
-295
+201
+271
+261
+331
 tick-frac
 0.001
 1
@@ -367,10 +367,10 @@ tick-frac
 Number
 
 INPUTBOX
-102
-171
-173
-231
+157
+206
+291
+266
 groundnum
 5
 1
@@ -379,9 +379,9 @@ Number
 
 SWITCH
 137
-332
+357
 241
-365
+390
 show-coor?
 show-coor?
 1
@@ -390,9 +390,9 @@ show-coor?
 
 SWITCH
 137
-372
+397
 241
-405
+430
 show-id?
 show-id?
 1
@@ -400,10 +400,10 @@ show-id?
 -1000
 
 MONITOR
-337
-80
-582
-125
+301
+76
+546
+121
 Frequencies
 table:to-list freq-table
 17
@@ -476,10 +476,10 @@ num-problem-types
 Number
 
 MONITOR
-337
-31
-580
-76
+301
+27
+544
+72
 NIL
 table:to-list global-config-pheromones
 17
@@ -488,9 +488,9 @@ table:to-list global-config-pheromones
 
 SWITCH
 21
-25
-171
-58
+26
+290
+59
 display-in-3d?
 display-in-3d?
 1
@@ -498,10 +498,10 @@ display-in-3d?
 -1000
 
 MONITOR
-338
-130
-583
-175
+302
+126
+547
+171
 NIL
 table:to-list global-problem-removal-map
 17
@@ -511,7 +511,7 @@ table:to-list global-problem-removal-map
 BUTTON
 20
 135
-172
+291
 168
 End Simulation
 end-simulation
@@ -527,13 +527,43 @@ NIL
 
 TEXTBOX
 23
-313
+338
 173
-331
+356
 3D Satellite Label Settings:
 12
 95.0
 0
+
+TEXTBOX
+24
+172
+139
+202
+How many sats to load from csv:
+12
+0.0
+1
+
+TEXTBOX
+161
+172
+272
+202
+How many grounds to load from csv:
+12
+0.0
+1
+
+TEXTBOX
+53
+290
+203
+308
+Probably don't touch this ->
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
