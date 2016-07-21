@@ -227,7 +227,7 @@ to refresh-downlinks
   let visible other grounds-in-cone with [freq = [freq] of myself]
   let new-list []
   ask visible [
-    create-downlink-from myself
+    create-downlink-from myself [ if not display-in-3d? [hide-link] ]
     if not member? self [connected-grounds] of myself [
      ; show (word "DOWNLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]

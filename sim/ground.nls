@@ -159,7 +159,7 @@ to refresh-uplinks
   let new-list []
   let current-ground self
   ask visible [
-    create-uplink-from myself
+    create-uplink-from myself [ if not display-in-3d? [hide-link] ]
     if not member? self [connected-sats] of myself [
       ;show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]

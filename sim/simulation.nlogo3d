@@ -17,7 +17,8 @@ globals [ scale tick-frac-of-min
           sats-by-height freq-table
           time time-numerical
           pre-ant-ticks
-          END-SIM? ]
+          END-SIM?
+          last-display-setting ]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -27,6 +28,7 @@ to setup
   file-close-all
   stop-inspecting-dead-agents
   set END-SIM? false
+
   set scale 1000 ;Global to scale down kilometers and minutes
   set scale-2d 4
   set earth-radius (6371)
@@ -44,7 +46,8 @@ to setup
   setup-environment
   setup-ants
   setup-problems
-
+  check-display-setting
+  set last-display-setting display-in-3d?
   ;inspect one-of ants
   reset-ticks
 end
@@ -72,13 +75,17 @@ end
 ;Continuously-called procedure.
 to go
   if not END-SIM? [
+    if display-in-3d? != last-display-setting [
+      check-display-setting
+      set last-display-setting display-in-3d?
+    ]
     set time get-time
     set time-numerical get-time-numerical
     ask uplinks [ ;act on active uplinks
       set color red
       communicate-up ;here ants are possibly dispatched.
     ]
-    ask downlinks [ ;act on active downlinks
+    ask downlinks [
       set color green
       communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
     ]
@@ -102,10 +109,10 @@ to go
       update-coors [lat] of my-sat [long] of my-sat
       move
     ]
-    ask grounds [  ;draw active uplinks
+    ask grounds [
       refresh-uplinks
     ]
-    ask sats [ ;draw active downlinks
+    ask sats [
       refresh-downlinks
     ]
     ask environments [
@@ -116,8 +123,6 @@ to go
       ]
     ]
     ask sentinels [
-      ; to-do
-      ; this is where the sentinels draw the pheromones and such
       set label pheromones
       ;update-previous-values
     ]
@@ -143,8 +148,6 @@ end
 
 ;uplink (satellite listen) procedure
 to communicate-up
-  ; tag-caution
-  ; handle ants being passed to satellites.
   let ant-list []
   ;ground
   ask end1 [
@@ -152,8 +155,6 @@ to communicate-up
   ]
   ;if we have ants in queue, we set them to dispatched.
   if length ant-list > 0 [
-    ;show [my-sentinel] of end1
-    ;show end2
     foreach ant-list [
       ask ant ? [
         ;don't reset ants time if they are already dispatched
@@ -171,15 +172,7 @@ to communicate-up
 end
 
 ;downlink (ground listen) procedure
-;does not yet write the output to console
 to communicate-down
-  ; tag-caution
-  ; handle ants coming back from the satellites, as well as communicating their reports.
-  ; do they need to stay on-board? we'll need to make sure they don't go up and just come
-  ; right back. We need them to stay on for a specified amount of time?
-  ;check for particpation, first.
-  ;show end1
- ; show end2
   let current-sat end1
   if [participating] of [my-sentinel] of end2
       and (table:has-key? [ant-queues] of [my-sentinel] of end2 [who] of end1) [
@@ -210,6 +203,37 @@ to communicate-down
           ]
         ]
       ]
+    ]
+  ]
+end
+
+to check-display-setting
+  ifelse display-in-3d? [
+    ask (turtle-set sats grounds) [
+      show-turtle
+    ]
+    ask (link-set downlinks uplinks) [
+      show-link
+    ]
+    ask (turtle-set sats-2d grounds-2d sentinels) [
+      hide-turtle
+    ]
+    ask ants [
+      ask connectors [ die ]
+    ]
+  ]
+  [
+    ask (turtle-set sats-2d grounds-2d sentinels) [
+      show-turtle
+    ]
+    ask (turtle-set sats grounds) [
+      hide-turtle
+    ]
+    ask (link-set downlinks uplinks) [
+      hide-link
+    ]
+    ask ants [
+      ask connectors [ die ]
     ]
   ]
 end
@@ -270,16 +294,16 @@ INPUTBOX
 97
 231
 satnum
-25
+100
 1
 0
 Number
 
 BUTTON
-19
-26
-170
-67
+20
+63
+171
+96
 Setup Simulation
 setup
 NIL
@@ -293,10 +317,10 @@ NIL
 1
 
 SWITCH
-19
-301
-128
-334
+21
+332
+130
+365
 show-name?
 show-name?
 1
@@ -304,10 +328,10 @@ show-name?
 -1000
 
 SWITCH
-19
-341
-128
-374
+21
+372
+130
+405
 show-height?
 show-height?
 1
@@ -315,10 +339,10 @@ show-height?
 -1000
 
 BUTTON
-19
-74
-171
-115
+20
+99
+172
+132
 Begin Simulation
 go
 T
@@ -354,10 +378,10 @@ groundnum
 Number
 
 SWITCH
-135
-301
-239
-334
+137
+332
+241
+365
 show-coor?
 show-coor?
 1
@@ -365,10 +389,10 @@ show-coor?
 -1000
 
 SWITCH
-135
-341
-239
-374
+137
+372
+241
+405
 show-id?
 show-id?
 1
@@ -376,43 +400,21 @@ show-id?
 -1000
 
 MONITOR
-458
-19
-668
-64
+337
+80
+582
+125
 Frequencies
 table:to-list freq-table
 17
 1
 11
 
-SWITCH
-18
-379
-124
-412
-trails-2d?
-trails-2d?
-0
-1
--1000
-
-MONITOR
-458
-69
-669
-114
-NIL
-visited
-17
-1
-11
-
 INPUTBOX
-329
-363
-484
-423
+298
+280
+453
+340
 min-config-types
 3
 1
@@ -420,10 +422,10 @@ min-config-types
 Number
 
 INPUTBOX
-329
+298
+212
+453
 272
-484
-332
 ant-num
 6
 1
@@ -431,10 +433,10 @@ ant-num
 Number
 
 INPUTBOX
-510
-363
-665
-423
+462
+282
+617
+342
 min-problem-duration
 50
 1
@@ -442,10 +444,10 @@ min-problem-duration
 Number
 
 INPUTBOX
-510
-427
-665
-487
+462
+346
+617
+406
 max-problem-duration
 100
 1
@@ -453,20 +455,20 @@ max-problem-duration
 Number
 
 TEXTBOX
-515
-327
-665
-359
-Please input this value in ticks.
+467
+246
+617
+278
+Please input these values in ticks.
 13
-0.0
-1
+95.0
+0
 
 INPUTBOX
-328
-427
-483
-487
+299
+346
+454
+406
 num-problem-types
 18
 1
@@ -474,10 +476,10 @@ num-problem-types
 Number
 
 MONITOR
-182
-26
-425
-71
+337
+31
+580
+76
 NIL
 table:to-list global-config-pheromones
 17
@@ -485,10 +487,10 @@ table:to-list global-config-pheromones
 11
 
 SWITCH
-183
-75
-315
-108
+21
+25
+171
+58
 display-in-3d?
 display-in-3d?
 1
@@ -496,10 +498,10 @@ display-in-3d?
 -1000
 
 MONITOR
-460
-120
-671
-165
+338
+130
+583
+175
 NIL
 table:to-list global-problem-removal-map
 17
@@ -507,10 +509,10 @@ table:to-list global-problem-removal-map
 11
 
 BUTTON
-19
-121
-171
-163
+20
+135
+172
+168
 End Simulation
 end-simulation
 NIL
@@ -521,6 +523,16 @@ NIL
 NIL
 NIL
 NIL
+0
+
+TEXTBOX
+23
+313
+173
+331
+3D Satellite Label Settings:
+12
+95.0
 0
 
 @#$#@#$#@

@@ -25,7 +25,7 @@ ants-own [ my-sat-2d
            
            my-config
            
-           my-sat 
+           my-sat
            
            info-visited-sentinels
            
@@ -76,16 +76,35 @@ end
 
 to draw-ant
   ifelse is-dispatched? [
-    set xcor [xcor] of my-sat-2d
-    set ycor [ycor] of my-sat-2d
-    if not any? my-connectors [
-      create-connector-with my-sentinel
+    ifelse display-in-3d? [ 
+      set xcor [xcor] of my-sat
+      set ycor [ycor] of my-sat
+      set zcor [zcor] of my-sat
+      if is-dispatched? [
+        create-connector-with [my-ground] of my-sentinel
+      ]
+    ]
+    [
+      set xcor [xcor] of my-sat-2d
+      set ycor [ycor] of my-sat-2d
+      set zcor [zcor] of my-sat-2d
+      if is-dispatched? [
+        create-connector-with my-sentinel
+      ]
     ]
   ]
   [
     ask my-connectors [ die ]
-    set xcor [xcor] of my-sentinel
-    set ycor [ycor] of my-sentinel
+    ifelse display-in-3d? [
+      set xcor [xcor] of [my-ground] of my-sentinel
+      set ycor [ycor] of [my-ground] of my-sentinel
+      set zcor [zcor] of [my-ground] of my-sentinel
+    ]
+    [
+      set xcor [xcor] of my-sentinel
+      set ycor [ycor] of my-sentinel
+      set zcor [zcor] of my-sentinel
+    ]
   ]
 end
 
