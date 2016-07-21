@@ -1,10 +1,11 @@
 __includes ["sat.nls"
             "ground.nls"
             "util.nls"
+            "command.nls"
+            "sat-os.nls"
             "ant.nls"
             "sentinel.nls"
-            "environment.nls"
-            "problem-generation.nls"]
+            "environment.nls"]
 
 extensions [ csv table array profiler ]
 
@@ -13,12 +14,9 @@ globals [ scale tick-frac-of-min
           comm-buffer
           sys-list
           grounds-2d-list
-          scale-2d
+          scale2d
           sats-by-height freq-table
-          time time-numerical
-          pre-ant-ticks
-          END-SIM?
-          last-display-setting ]
+          time time-numerical ]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -27,14 +25,11 @@ to setup
   clear-all
   file-close-all
   stop-inspecting-dead-agents
-  set END-SIM? false
-
   set scale 1000 ;Global to scale down kilometers and minutes
-  set scale-2d 4
+  set scale2d 4
   set earth-radius (6371)
   set earth-rot-time (1437)
   set comm-buffer 2
-  set pre-ant-ticks 500
   random-seed 586878
 
   set freq-table table:make
@@ -45,10 +40,7 @@ to setup
 
   setup-environment
   setup-ants
-  setup-problems
-  check-display-setting
-  set last-display-setting display-in-3d?
-  ;inspect one-of ants
+  inspect one-of ants
   reset-ticks
 end
 
@@ -64,8 +56,8 @@ to generate-grounds
        set shape "target"
        set color red
        set zcor 49
-       set xcor item 0 ? / scale-2d
-       set ycor item 1 ? / scale-2d
+       set xcor item 0 ? / scale2d
+       set ycor item 1 ? / scale2d
       ]
       set num num + 1
     ]
@@ -74,96 +66,126 @@ end
 
 ;Continuously-called procedure.
 to go
-  if not END-SIM? [
-    if display-in-3d? != last-display-setting [
-      check-display-setting
-      set last-display-setting display-in-3d?
-    ]
-    set time get-time
-    set time-numerical get-time-numerical
-    ask uplinks [ ;act on active uplinks
-      set color red
-      communicate-up ;here ants are possibly dispatched.
-    ]
-    ask downlinks [
-      set color green
-      communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
-    ]
-    if ticks > pre-ant-ticks [
-      highlight-reports
-    ]
-    ask grounds [ ;move the ground
-      move-by-deg circ-radius deg-per-tick
-    ]
-    ask sats [ ;move the sat and system.
-      configure-settings
-      let old-lat lat
-      let old-long long
-      let old-bear ( 360 - pitch + 90 )
-      move-by-deg circ-radius deg-per-tick
-      let new-coors update-coor old-lat old-long old-bear deg-per-tick
-      set lat item 0 new-coors
-      set long item 1 new-coors
-    ]
-    ask sats-2d [
-      update-coors [lat] of my-sat [long] of my-sat
-      move
-    ]
-    ask grounds [
-      refresh-uplinks
-    ]
-    ask sats [
-      refresh-downlinks
-    ]
-    ask environments [
-      if ticks > pre-ant-ticks [
-        refresh-problems ;remove old problems
-        decay-pheromones ;take away pheromones
-        update ;fix the sentinel sums
-      ]
-    ]
-    ask sentinels [
-      set label pheromones
-      ;update-previous-values
-    ]
-    if ticks > pre-ant-ticks [
-      delegate-problems ;possibility to add new problems
-      ask ants [
-        ifelse is-dispatched? [
-          go-ant
-        ]
-        [
-          if not is-waiting? [
-            move-ant ;relies on pheromone values
-          ]
-        ]
-        ;if ant is dispatched, draw it on satellite with a link to its ground
-        ;else, draw it on the ground station it currently resides on.
-        draw-ant
-      ]
-    ]
-    tick
+  set time get-time
+  set time-numerical get-time-numerical
+  ask uplinks [ ;act on active uplinks
+    set color red
+    communicate-up ;here ants are possibly dispatched.
   ]
+  ask downlinks [ ;act on active downlinks
+    set color green
+    communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
+  ]
+  ask grounds [ ;move the ground
+    move-by-deg circ-radius deg-per-tick
+  ]
+  ask sats [ ;move the sat and system.
+    configure-settings
+    ask my-system [
+      if length command-queue > 0 [
+        process-commands
+      ]
+      if table:length work-queue > 0 [
+        execute
+      ]
+    ]
+    let old-lat lat
+    let old-long long
+    let old-bear ( 360 - pitch + 90 )
+    move-by-deg circ-radius deg-per-tick
+    let new-coors update-coor old-lat old-long old-bear deg-per-tick
+    set lat item 0 new-coors
+    set long item 1 new-coors
+    ask my-system [
+       update-var list "LAT" [lat] of myself
+       update-var list "LONG" [long] of myself
+
+       ;2d plotting
+       move
+     ]
+   ]
+  ask grounds [  ;draw active uplinks
+    refresh-uplinks
+    if time-numerical - last-check > check-wait-duration [
+      intermittent-check
+      set last-check time-numerical
+    ]
+  ]
+  ask sats [ ;draw active downlinks
+    refresh-downlinks
+  ]
+  ask environments [
+    decay-pheromones ;take away pheromones
+    update ;fix the total pheromone array
+  ]
+  ask sentinels [
+    ; to-do
+    ; this is where the sentinels draw the pheromones and such
+    set label array:to-list total-pheromone-values
+    ;update-previous-values
+  ]
+  if ticks > 500 [
+  ask ants [
+    ; tag-caution
+    ; this is where ants observe the satellite data
+    ; also ants not dispatched need to do their move
+    ifelse is-dispatched? [
+      go-ant
+    ]
+    [
+      if not is-waiting? [
+        move-ant ;relies on pheromone values
+      ]
+    ]
+    ;if ant is dispatched, draw it on satellite with a link to its ground
+    ;else, draw it on the ground station it currently resides on.
+    draw-ant
+  ]
+  ]
+  tick
 end
 
 ;uplink (satellite listen) procedure
 to communicate-up
+  ; tag-caution
+  ; handle ants being passed to satellites.
+
+  let commands table:make
   let ant-list []
   ;ground
   ask end1 [
+    set commands requested-commands
     set ant-list table:get [ant-queues] of my-sentinel [who] of [end2] of myself
   ]
+  ;satellite os
+  if table:length commands > 0 [
+    let ID 0
+    ask end2 [
+      ask my-system [
+        set ID table:get sat-data "ID"
+        if table:has-key? commands ID [
+          listen-commands (table:get commands ID )
+        ]
+      ]
+    ]
+    ask end1 [
+      table:remove requested-commands ID
+    ]
+  ]
   ;if we have ants in queue, we set them to dispatched.
+  let current-system [my-system] of end2
   if length ant-list > 0 [
+    ;show [my-sentinel] of end1
+    ;show end2
     foreach ant-list [
       ask ant ? [
         ;don't reset ants time if they are already dispatched
         if not is-dispatched? [
-          ;show (word "dispatching ant to " my-sat)
-          set visited lput my-sat visited
+          show (word "dispatching ant to " current-system)
+          set visited lput current-system visited
           set is-dispatched? true
           set is-waiting? false
-          set my-sat-2d [my-sat-2d] of my-sat
+          set my-system current-system
           set time-dispatched time-numerical
         ]
       ]
@@ -172,10 +194,45 @@ to communicate-up
 end
 
 ;downlink (ground listen) procedure
+;does not yet write the output to console
 to communicate-down
+  ; tag-caution
+  ; handle ants coming back from the satellites, as well as communicating their reports.
+  ; do they need to stay on-board? we'll need to make sure they don't go up and just come
+  ; right back. We need them to stay on for a specified amount of time?
+
+  let output-table table:make
+  ;satellite os
+  ask end1 [ ask my-system [ set output-table transfer-output ] ]
+  ;ground
+  let current-system [my-system] of end1
+  let success false
+  if table:length output-table > 0 [
+    ask end2
+    [
+      foreach table:keys output-table [
+        ifelse table:has-key? command-archive ? [
+          let command table:get command-archive ?
+          let output table:get output-table ?
+          table:put command-archive ? (sentence command output time)
+          ;set success true
+          ask current-system [ let a CLEAR_OUTPUT_ID ? ]
+        ]
+        [
+          set success false
+          ;show (word "Received unknown process ID " ? " This should never happen.")
+        ]
+      ]
+    ]
+    ;ask end1 [
+    ;  if success [
+    ;    ask my-system [ let a-waste CLEAR_OUTPUT_ID  ]
+    ;  ]
+    ;]
+  ]
+  ;check for particpation, first.
   let current-sat end1
-  if [participating] of [my-sentinel] of end2
-      and (table:has-key? [ant-queues] of [my-sentinel] of end2 [who] of end1) [
+  if [participating] of [my-sentinel] of end2 [
     let ant-list table:get [ant-queues] of [my-sentinel] of end2 [who] of end1
     if length ant-list > 0 [
       foreach ant-list [
@@ -196,7 +253,7 @@ to communicate-down
                 ask my-sentinel [
                   remove-ant myself current-sat
                 ]
-                set my-sat-2d NO_VAL
+                set my-system NO_VAL
                 set my-sentinel NO_VAL
               ]
             ]
@@ -205,58 +262,6 @@ to communicate-down
       ]
     ]
   ]
-end
-
-to check-display-setting
-  ifelse display-in-3d? [
-    ask (turtle-set sats grounds) [
-      show-turtle
-    ]
-    ask (link-set downlinks uplinks) [
-      show-link
-    ]
-    ask (turtle-set sats-2d grounds-2d sentinels) [
-      hide-turtle
-    ]
-    ask ants [
-      ask connectors [ die ]
-    ]
-  ]
-  [
-    ask (turtle-set sats-2d grounds-2d sentinels) [
-      show-turtle
-    ]
-    ask (turtle-set sats grounds) [
-      hide-turtle
-    ]
-    ask (link-set downlinks uplinks) [
-      hide-link
-    ]
-    ask ants [
-      ask connectors [ die ]
-    ]
-  ]
-end
-
-to end-simulation
-  set END-SIM? true
-  if file-exists? "end-of-sim-report.txt" [
-    file-delete "end-of-sim-report.txt"
-  ]
-  file-open "end-of-sim-report.txt"
-  file-print "SENTINELS VISITED"
-  ask ants [
-    file-show info-visited-sentinels
-  ]
-  file-print "SATELLITES VISITED"
-  ask ants [
-    file-show info-visited-sats
-  ]
-  file-print "CONFIGS VISITED"
-  ask ants [
-    file-show info-visited-configs
-  ]
-  file-close
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -289,22 +294,22 @@ ticks
 30.0
 
 INPUTBOX
-19
-206
-152
-266
+18
+121
+96
+181
 satnum
-100
+25
 1
 0
 Number
 
 BUTTON
-20
-63
-291
-96
-Setup Simulation
+19
+26
+170
+67
+NIL
 setup
 NIL
 1
@@ -317,10 +322,10 @@ NIL
 1
 
 SWITCH
-21
-357
-130
-390
+18
+251
+127
+284
 show-name?
 show-name?
 1
@@ -328,10 +333,10 @@ show-name?
 -1000
 
 SWITCH
-21
-397
-130
-430
+18
+291
+127
+324
 show-height?
 show-height?
 1
@@ -339,11 +344,11 @@ show-height?
 -1000
 
 BUTTON
-20
-99
-291
-132
-Begin Simulation
+19
+74
+171
+115
+NIL
 go
 T
 1
@@ -356,10 +361,10 @@ NIL
 0
 
 INPUTBOX
-201
-271
-261
-331
+18
+185
+173
+245
 tick-frac
 0.001
 1
@@ -367,10 +372,10 @@ tick-frac
 Number
 
 INPUTBOX
-157
-206
-291
-266
+101
+121
+172
+181
 groundnum
 5
 1
@@ -378,10 +383,10 @@ groundnum
 Number
 
 SWITCH
-137
-357
-241
-390
+134
+251
+238
+284
 show-coor?
 show-coor?
 1
@@ -389,10 +394,10 @@ show-coor?
 -1000
 
 SWITCH
-137
-397
-241
-430
+134
+291
+238
+324
 show-id?
 show-id?
 1
@@ -400,170 +405,92 @@ show-id?
 -1000
 
 MONITOR
-301
-76
-546
-121
+421
+29
+633
+74
 Frequencies
 table:to-list freq-table
 17
 1
 11
 
-INPUTBOX
-298
-280
-453
-340
-min-config-types
-3
-1
-0
-Number
-
-INPUTBOX
-298
-212
-453
-272
-ant-num
-6
-1
-0
-Number
-
-INPUTBOX
-462
-282
-617
-342
-min-problem-duration
-50
-1
-0
-Number
-
-INPUTBOX
-462
-346
-617
-406
-max-problem-duration
-100
-1
-0
-Number
-
-TEXTBOX
-467
-246
-617
-278
-Please input these values in ticks.
-13
-95.0
-0
-
-INPUTBOX
-299
-346
-454
-406
-num-problem-types
-18
-1
-0
-Number
-
-MONITOR
-301
-27
-544
-72
-NIL
-table:to-list global-config-pheromones
-17
-1
-11
-
 SWITCH
-21
-26
-290
-59
-display-in-3d?
-display-in-3d?
-1
+17
+329
+123
+362
+trails-2d?
+trails-2d?
+0
 1
 -1000
 
+INPUTBOX
+189
+28
+291
+88
+antnum-deviation
+5
+1
+0
+Number
+
 MONITOR
-302
-126
-547
-171
+421
+176
+634
+221
 NIL
-table:to-list global-problem-removal-map
+global-pheromone-map
 17
 1
 11
 
-BUTTON
-20
-135
-291
-168
-End Simulation
-end-simulation
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
+INPUTBOX
+297
+28
+405
+88
+antnum-markovian
 0
-
-TEXTBOX
-23
-338
-173
-356
-3D Satellite Label Settings:
-12
-95.0
+1
 0
+Number
 
-TEXTBOX
-24
-172
-139
-202
-How many sats to load from csv:
-12
-0.0
+MONITOR
+421
+78
+632
+123
+NIL
+visited
+17
 1
-
-TEXTBOX
-161
-172
-272
-202
-How many grounds to load from csv:
-12
-0.0
-1
-
-TEXTBOX
-53
-290
-203
-308
-Probably don't touch this ->
 11
-0.0
+
+MONITOR
+421
+127
+633
+172
+NIL
+pheromone-time-map
+17
 1
+11
+
+INPUTBOX
+189
+93
+291
+153
+antnum-time
+0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?

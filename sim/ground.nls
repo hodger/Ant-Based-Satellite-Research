@@ -109,8 +109,8 @@ to setup-ground
        set color red
        
        set zcor 49
-       set xcor [long] of myself / scale-2d
-       set ycor [lat] of myself / scale-2d
+       set xcor [long] of myself / scale2d
+       set ycor [lat] of myself / scale2d
     ]
     set my-ground-2d item grounds-2d-count grounds-2d-list
     set grounds-2d-count grounds-2d-count + 1
@@ -153,40 +153,65 @@ to manual-setup-ground [ a-name a-long a-lat a-freq ]
 end
 
 ;grounds procedure
+;Input: list of two-item lists.
+;Item 0 is to be the satellite NORAD number.
+;Item 1 is to be the command string.
+to request-commands [ the-commands ]
+  foreach the-commands [
+    let sat item 0 ?
+    let ID (word ground-ID current-process-ID)
+    ;show (word "submitting process " ID)
+    let command (word ground-ID " " current-process-ID " " time " " item 1 ?)
+    let existing-commands []
+    if table:has-key? requested-commands sat [
+       set existing-commands table:get requested-commands sat
+    ]
+    table:put requested-commands sat (sentence existing-commands command)
+    table:put command-archive ID (list sat command time)
+    set current-process-ID current-process-ID + 1
+  ]
+end
+
+to intermittent-check 
+  if length connected-sats > 0 [
+    let current-sat [sat-ID] of item (random length connected-sats) connected-sats
+    request-commands (list (list current-sat "RETURN NAME")
+                           (list current-sat "RETURN LAT") 
+                           (list current-sat "RETURN LONG"))
+  ]
+end
+
+;grounds procedure
 to refresh-uplinks
   tilt-up 90
   let visible sats-in-cone with [freq = [freq] of myself]
   let new-list []
-  let current-ground self
   ask visible [
-    create-uplink-from myself [ if not display-in-3d? [hide-link] ]
+    create-uplink-from myself
     if not member? self [connected-sats] of myself [
-      ;show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
+      show (word "UPLINK ESTABLISHED: " [name] of myself " --> " [name] of self)
     ]
     set new-list lput self new-list
     
     ;check for participation, first. Otherwise don't add a sat to its ant-queue keys.
-    
     if [participating] of [my-sentinel] of myself [
       if not table:has-key? [ant-queues] of [my-sentinel] of myself who [ 
         table:put [ant-queues] of [my-sentinel] of myself who [] 
       ]
-      if not table:has-key? [sat-config-pheromones] of [my-sentinel] of myself who [
-        ;NEW
-        table:put ([sat-config-pheromones] of [my-sentinel] of myself) who (get-sat-config-array self)
+      if not table:has-key? [sat-pheromone-values] of [my-sentinel] of myself who [
+        ; [1 1] is bad. to-do
+        table:put [sat-pheromone-values] of [my-sentinel] of myself who add-sat-to-global-map self
         ask [my-sentinel] of myself [
-          table:put [sat-sum-pheromones] of [my-sentinel] of current-ground [who] of myself 0
+          update-total-pheromones 
         ]
-      ]
-      if not table:has-key? [contexts] of [my-sentinel] of myself who [
-        table:put ([contexts] of [my-sentinel] of myself) who (get-sat-context self)
       ]
     ]
   ]
+  let current-ground self
   foreach connected-sats [
     if not member? ? visible [
       ask uplink [who] of current-ground [who] of ? [ die ]
-      ;show (word "UPLINK LOST: " [name] of self " -X-> " [name] of ?)
+      show (word "UPLINK LOST: " [name] of self " -X-> " [name] of ?)
     ]
   ]
   set connected-sats new-list
