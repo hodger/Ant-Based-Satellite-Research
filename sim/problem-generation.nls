@@ -1,0 +1,132 @@
+globals [all-problems
+         global-problem-removal-map]
+
+to setup-problems
+  set all-problems table:make
+  set global-problem-removal-map table:make
+  ask sats [
+    table:put all-problems who []
+  ]
+end
+
+to delegate-problems
+  foreach table:keys all-problems [
+    let current-sat sat ?
+    let workaround true
+    ask current-sat [
+      if length my-problems = length available-configs [
+        set workaround false 
+      ] 
+    ]
+    ;if the current sat does not have all available problems.
+    if (workaround = true) [
+      ;give a new problem
+      let remaining-problems []
+      let a-num random 100
+      if a-num = 1 [
+        foreach [available-configs] of current-sat [
+          ;if this problem isn't already active, it's available for us to pick
+          if not member? ? [my-problems] of current-sat [
+            set remaining-problems lput ? remaining-problems 
+          ]
+        ]
+        let problem-choice item (random (length remaining-problems)) remaining-problems
+        create-problem current-sat problem-choice
+      ]
+    ]
+  ]
+end
+
+to create-problem [a-sat a-problem] 
+  ;show (word "adding problem " a-problem " to " a-sat)
+  ask a-sat [
+    set my-problems lput a-problem my-problems
+  ]
+  let existing table:get all-problems [who] of a-sat
+  let duration (random (max-problem-duration - min-problem-duration)) + min-problem-duration
+  table:put all-problems [who] of a-sat lput (list time-numerical duration) existing
+  let end-tick time-numerical + duration
+  let existing-sats []
+  if table:has-key? global-problem-removal-map end-tick [
+    set existing-sats table:get global-problem-removal-map end-tick
+  ]
+  table:put global-problem-removal-map end-tick lput [who] of a-sat existing-sats
+end
+
+to refresh-problems 
+  if table:has-key? global-problem-removal-map time-numerical [
+    foreach remove-duplicates table:get global-problem-removal-map time-numerical [
+      let sat-num ?
+      let current-times table:get all-problems sat-num
+      
+      let new-times current-times
+      let new-problems [my-problems] of sat sat-num
+      
+      foreach n-values length current-times [?] [
+        ;show (word "sat " sat-num " prior problems: " new-times)
+        ;show (word "sat " sat-num " prior problem list: " new-problems)
+        ;use static lists to update these values
+        let current-pair item ? current-times
+        let init-time item 0 current-pair
+        let duration item 1 current-pair
+        let end-tick init-time + duration
+        let current-problem item ? [my-problems] of sat sat-num
+        
+        if end-tick <= time-numerical [
+          ;show (word "pair for removal: " current-pair)
+          ;show (word "problem for removal:" current-problem)
+          ;remove the values from our dynamic lists
+          set new-times remove current-pair new-times
+          set new-problems remove current-problem new-problems
+          ;show (word "sat " sat-num " removed problems: " new-times)
+          ;show (word "sat " sat-num " updated problem list: " new-problems)
+        ]
+      ]
+      ;set our static lists to the adjusted dynamic lists
+      ask sat sat-num [
+        set my-problems new-problems 
+      ]
+      table:put all-problems sat-num new-times  
+    ]
+    ;remove this time from our map.
+    table:remove global-problem-removal-map time-numerical 
+  ]
+  
+  ;foreach table:keys all-problems [
+  ;  let sat-num ?
+  ;  let current-times table:get all-problems sat-num
+  ; 
+  ;  let new-times current-times
+  ;  
+  ;  foreach n-values length current-times [?] [
+  ;    let current-pair item ? current-times
+  ;    let init-time item 0 current-pair
+  ;    let duration item 1 current-pair
+  ;    let delta time-numerical - init-time
+  ;    
+  ;    if delta >= duration [
+  ;      show (word "expiring problem index " ? " from sat " sat-num)
+  ;      ;expire problem
+  ;      set new-times remove-item ? new-times
+  ;      ask sat sat-num [
+  ;        set my-problems remove-item ? my-problems
+  ;      ]
+  ;    ] 
+  ;  ]
+  ;  table:put all-problems sat-num new-times 
+  ;]
+end
+
+;randomly generate a context for a sat based on its available ant configurations.
+to-report load-context [a-sat]
+  let context-list []
+  let temp-list [available-configs] of a-sat
+  let a-length length temp-list
+  let chosen random a-length
+  foreach n-values chosen [?] [
+    let config random length temp-list
+    set context-list lput config context-list
+    set temp-list remove config temp-list 
+  ]
+  report context-list
+end
