@@ -20,6 +20,10 @@ ants-own [ my-sat-2d
            
            time-dispatched 
            
+           previous-sentinel
+           
+           previous-sat
+           
            ;NEW
            my-config-index
            
@@ -60,6 +64,8 @@ to setup-basic-ant [a-name]
   set info-state-times array:from-list [0 0 0]
   set info-visited-configs []
   set info-detected-probs 0
+  ;this will always return a "nobody" value before properly assigned.
+  set previous-sentinel sentinel -1
   set results []   
 end
 
@@ -120,13 +126,14 @@ end
 
 to choose-sentinel
   let spinner []
-  ask sentinels with [participating and table:length ant-queues > 0] [
+  ask sentinels with [(self != [previous-sentinel] of myself) and participating and (table:length ant-queues > 0)] [
     foreach n-values (pheromones + 1) [?] [
       set spinner lput self spinner 
     ] 
   ]
   let selected-sentinel item (random (length spinner)) spinner
   set my-sentinel selected-sentinel
+  set previous-sentinel my-sentinel
   set info-visited-sentinels lput my-sentinel info-visited-sentinels
   ;show (word "ant " self " chose " selected-sentinel)
 end
@@ -144,6 +151,7 @@ to choose-sat
   ]
   let selected-sat item (random (length spinner)) spinner
   set my-sat selected-sat
+  set previous-sat my-sat
   set info-visited-sats lput my-sat info-visited-sats
   ;show (word "ant " self " chose " selected-sat)  
 end
