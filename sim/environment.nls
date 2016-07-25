@@ -3,16 +3,19 @@ globals [ number-pheromones ; number, how many pheromone types
           global-pheromone-map
           EVAPORATION-TIME
           EVAPORATION-VALUE
-          MARKOVIAN-PHEROMONE
-          DEVIATION-PHEROMONE
+          MAX-PHEROMONE-VALUE
           ;total-pheromones 
           
           global-config-pheromones ; table, sat -> array of pheromones for each configuration
           global-config-pheromone-times ; table, sat -> array of latest pheromone drop time for each configuration
           global-sat-contexts ; table, sat -> array of problem-types which should be treated as exceptions
           
+          global-sat-current-ants ; table, sat who number -> list of ant who numbers
+          
           problem-identifiers ; map, problem id -> string identifier ('A', 'B', ... ,'AA')
           highlight-queue
+          
+          SWARM-NUMBER
           ] 
 
 breed [ environments environment ]
@@ -26,6 +29,11 @@ to setup-environment
   ;set total-pheromones array:from-list (n-values number-pheromones [0])
   set EVAPORATION-TIME 10
   set EVAPORATION-VALUE 5
+  
+  ;what do we consider a swarm?
+  set SWARM-NUMBER 5
+  set MAX-PHEROMONE-VALUE 100
+  
   ;copy grounds to a temporary agentset
   let temp-grounds grounds
   let temp-list []
@@ -33,6 +41,7 @@ to setup-environment
   set global-config-pheromones table:make
   set global-config-pheromone-times table:make
   set global-sat-contexts table:make
+  set global-sat-current-ants table:make
   setup-problem-identifiers
   set highlight-queue []
   
@@ -55,8 +64,6 @@ to setup-environment
      set sentinel-list temp-list
      set pheromone-time-map table:make
      set global-pheromone-map table:make
-     set MARKOVIAN-PHEROMONE 0
-     set DEVIATION-PHEROMONE 1
      foreach sentinel-list [
        ask ? [
          set my-environment myself 

@@ -1,5 +1,6 @@
-globals [all-problems
-         global-problem-removal-map]
+globals [ all-problems
+          global-problem-removal-map
+          missed-problem-count ]
 
 to setup-problems
   set all-problems table:make
@@ -91,30 +92,23 @@ to refresh-problems
     ;remove this time from our map.
     table:remove global-problem-removal-map time-numerical 
   ]
-  
-  ;foreach table:keys all-problems [
-  ;  let sat-num ?
-  ;  let current-times table:get all-problems sat-num
-  ; 
-  ;  let new-times current-times
-  ;  
-  ;  foreach n-values length current-times [?] [
-  ;    let current-pair item ? current-times
-  ;    let init-time item 0 current-pair
-  ;    let duration item 1 current-pair
-  ;    let delta time-numerical - init-time
-  ;    
-  ;    if delta >= duration [
-  ;      show (word "expiring problem index " ? " from sat " sat-num)
-  ;      ;expire problem
-  ;      set new-times remove-item ? new-times
-  ;      ask sat sat-num [
-  ;        set my-problems remove-item ? my-problems
-  ;      ]
-  ;    ] 
-  ;  ]
-  ;  table:put all-problems sat-num new-times 
-  ;]
+end
+
+;force the removal of a problem, right away
+to remove-problem [a-sat a-problem]
+  ;position returns false if item is not present in list.
+  let problem-index position a-problem [my-problems] of a-sat
+  if problem-index != false [
+    ask a-sat [
+      set my-problems remove a-problem my-problems 
+    ]
+    let existing-times []
+    if table:has-key? all-problems [who] of a-sat [
+       set existing-times table:get all-problems [who] of a-sat
+    ]
+    let new-times remove-item problem-index existing-times
+    table:put all-problems [who] of a-sat new-times
+  ] 
 end
 
 ;randomly generate a context for a sat based on its available ant configurations.
