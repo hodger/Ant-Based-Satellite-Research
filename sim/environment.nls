@@ -10,7 +10,7 @@ globals [ number-pheromones ; number, how many pheromone types
           global-config-pheromone-times ; table, sat -> array of latest pheromone drop time for each configuration
           global-sat-contexts ; table, sat -> array of problem-types which should be treated as exceptions
           
-          global-sat-current-ants ; table, sat who number -> list of ant who numbers
+          global-sat-ants-detecting ; table, sat who number -> list of ant who numbers
           
           problem-identifiers ; map, problem id -> string identifier ('A', 'B', ... ,'AA')
           highlight-queue
@@ -41,7 +41,7 @@ to setup-environment
   set global-config-pheromones table:make
   set global-config-pheromone-times table:make
   set global-sat-contexts table:make
-  set global-sat-current-ants table:make
+  set global-sat-ants-detecting table:make
   setup-problem-identifiers
   set highlight-queue []
   

@@ -181,9 +181,9 @@ to refresh-uplinks
       if not table:has-key? [contexts] of [my-sentinel] of myself who [
         table:put ([contexts] of [my-sentinel] of myself) who (get-sat-context self)
       ]
-      if not table:has-key? [problems-detected] of [my-sentinel] of myself who [
+      if not table:has-key? global-sat-ants-detecting who [
         let problem-count length available-configs
-        table:put ([problems-detected] of [my-sentinel] of myself) who (n-values problem-count [[]]) 
+        table:put global-sat-ants-detecting who (n-values problem-count [[]]) 
       ]
     ]
   ]

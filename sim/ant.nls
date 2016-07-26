@@ -190,7 +190,7 @@ to report-ant
   let answer 0
   ask my-sentinel [
     ;communicate with ant
-    set answer validate-report [my-config] of myself [results] of myself [my-sat] of myself
+    set answer validate-report [my-config] of myself [results] of myself [my-sat] of myself myself
   ]
   set results []
   if answer > 0 [

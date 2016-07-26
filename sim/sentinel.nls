@@ -15,8 +15,6 @@ sentinels-own [ my-ground  ;ground
                 
                 contexts  ;table, satellite -> [list of known problems]
                 
-                problems-detected ; satellite -> []
-                
                 number-config
                 
                 sat-config-pheromones
@@ -50,17 +48,32 @@ to setup-sentinel [a-ground]
   set sat-sum-pheromones table:make
   
   set contexts table:make
-  set problems-detected table:make
-  
+ 
   set participating true
   set pheromone-concentration 1
   ;set previous-values table:make
 end
 
-to-report validate-report [problem-type ant-data ant-sat]
+to-report validate-report [problem-type ant-data ant-sat an-ant]
   if member? problem-type (table:get contexts [who] of ant-sat) [
     show ("Problem accounted for.")
     report 0
+  ]
+  
+  ;all potential problems for this sat:
+  let all-sat-problems table:get global-sat-ants-detecting ant-sat
+  ;get specific list for this problem
+  let ant-detection-list (item ([my-config-index] of an-ant) all-sat-problems)
+  if not member? ([who] of an-ant) ant-detection-list [
+    set ant-detection-list lput [who] of an-ant ant-detection-list
+    if length ant-detection-list >= SWARM-NUMBER [
+      ;swarm detected. flush swarm queue for this problem. increment problem detected count. remove problem.
+      set ant-detection-list []
+      set found-problem-count found-problem-count + 1
+      remove-problem ant-sat problem-type
+    ]
+    set all-sat-problems replace-item ([my-config-index] of an-ant) all-sat-problems ant-detection-list
+    table:put global-sat-ants-detecting ant-sat all-sat-problems
   ]
   
   ;Keep track of all nearby sats so we don't overload them with pheromones.

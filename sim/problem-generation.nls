@@ -1,5 +1,6 @@
 globals [ all-problems
           global-problem-removal-map
+          found-problem-count
           missed-problem-count ]
 
 to setup-problems
@@ -79,15 +80,17 @@ to refresh-problems
           ;remove the values from our dynamic lists
           set new-times remove current-pair new-times
           set new-problems remove current-problem new-problems
-          ;show (word "sat " sat-num " removed problems: " new-times)
-          ;show (word "sat " sat-num " updated problem list: " new-problems)
+          
+          ;flush the ant-swarm queue for that problem, increment missed problem.
+          table:put global-sat-ants-detecting sat-num (replace-item ? (table:get global-sat-ants-detecting sat-num) [])
+          set missed-problem-count missed-problem-count + 1
         ]
       ]
       ;set our static lists to the adjusted dynamic lists
       ask sat sat-num [
         set my-problems new-problems 
       ]
-      table:put all-problems sat-num new-times  
+      table:put all-problems sat-num new-times
     ]
     ;remove this time from our map.
     table:remove global-problem-removal-map time-numerical 

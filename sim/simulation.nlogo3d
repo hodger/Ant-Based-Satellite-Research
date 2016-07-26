@@ -165,12 +165,6 @@ to communicate-up
           set is-waiting? false
           set my-sat-2d [my-sat-2d] of my-sat
           set time-dispatched time-numerical
-
-          let other-current-sats []
-          if table:has-key? global-sat-current-ants [who] of my-sat [
-             set other-current-sats table:get global-sat-current-ants [who] of my-sat
-          ]
-          table:put global-sat-current-ants [who] of my-sat lput other-current-sats [who] of self
         ]
       ]
     ]
@@ -196,9 +190,6 @@ to communicate-down
               ; to-do
               ; implement some kind of smarter solution than flipping a coin
               if random 2 = 1 [
-                let other-current-sats table:get global-sat-current-ants [who] of my-sat
-                table:put global-sat-current-ants ([who] of my-sat) (remove [who] of self other-current-sats)
-
                 set is-dispatched? false
                 set is-waiting? false
                 set time-dispatched time-numerical
