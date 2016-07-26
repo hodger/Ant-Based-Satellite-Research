@@ -136,7 +136,7 @@ to choose-sentinel
   let selected-sentinel item (random (length spinner)) spinner
   set my-sentinel selected-sentinel
   set previous-sentinel my-sentinel
-  set info-visited-sentinels lput my-sentinel info-visited-sentinels
+  set info-visited-sentinels lput [who] of my-sentinel info-visited-sentinels
   ;show (word "ant " self " chose " selected-sentinel)
 end
 
@@ -154,7 +154,7 @@ to choose-sat
   let selected-sat item (random (length spinner)) spinner
   set my-sat selected-sat
   set previous-sat my-sat
-  set info-visited-sats lput my-sat info-visited-sats
+  set info-visited-sats lput [who] of my-sat info-visited-sats
   ;show (word "ant " self " chose " selected-sat)  
 end
 

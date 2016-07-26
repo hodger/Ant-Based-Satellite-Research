@@ -182,9 +182,6 @@ to setup-sats
        lt inclination
        fd circ-radius
        tilt-down 90
-       let existing-coors []
-       if table:has-key? geo-coors country [ set existing-coors table:get geo-coors country ]
-       table:put geo-coors country lput list long lat existing-coors
       ]
       [;set is-geo? false
        set long random 360
@@ -194,12 +191,16 @@ to setup-sats
        set roll 90
        lt inclination
        ;ifelse random 2 = 1
-       ;  [lt inclination]
+       ; [lt inclination]
        ;  [rt inclination]
        fd circ-radius
        tilt-down 90
       ]
-
+    
+      let existing-coors []
+      if table:has-key? geo-coors country [ set existing-coors table:get geo-coors country ]
+      table:put geo-coors country lput list long lat existing-coors
+      
       ;2D setup
       ask (item sats-2d-count sats-2d-list) [
         setup-sat-2d myself [lat] of myself [long] of myself

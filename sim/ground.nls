@@ -21,10 +21,6 @@ grounds-own [ name; string
 
               deg-per-tick ;float, how far to move.
 
-              requested-commands ;table, satellite NORAD number -> command string.
-
-              command-archive ;table, process ID -> [SAT, COMMAND, TIME-SENT, OUTPUT, TIME-RECEIVED]
-
               my-ground-2d  ;ground-2d
               
               my-sentinel  ;sentinel
@@ -62,12 +58,7 @@ to setup-ground
     set cone-dist 50
     set cone-angle 5
     set connected-sats []
-    set requested-commands table:make
     set last-check time-numerical
-    ;the format of the archive is to be [ID: [SAT, COMMAND]] initially.
-    ;however, once the output is transfered from the satellite,
-    ;the format will become [ID: [SAT, COMMAND, OUTPUT]]
-    set command-archive table:make
     set ground-ID random 10000
     set current-process-ID 0
     
@@ -130,11 +121,6 @@ to manual-setup-ground [ a-name a-long a-lat a-freq ]
     set cone-dist 50
     set cone-angle 5
     set connected-sats []
-    set requested-commands table:make
-    ;the format of the archive is to be [ID: [SAT, COMMAND]] initially.
-    ;however, once the output is transfered from the satellite,
-    ;the format will become [ID: [SAT, COMMAND, OUTPUT]]
-    set command-archive table:make
     set ground-ID random 10000
     set current-process-ID 0
     set circ-radius abs (earth-radius / scale * cos ( lat ) )

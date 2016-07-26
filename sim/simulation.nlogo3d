@@ -264,15 +264,22 @@ to end-simulation
     file-delete "end-of-sim-report.txt"
   ]
   file-open "end-of-sim-report.txt"
+  file-print "END OF SIMULATION REPORT"
+  file-print "----------------------------------------"
   file-print "SENTINELS VISITED"
+  file-print "----------------------------------------"
   ask ants [
     file-show info-visited-sentinels
   ]
+  file-print "----------------------------------------"
   file-print "SATELLITES VISITED"
+  file-print "----------------------------------------"
   ask ants [
     file-show info-visited-sats
   ]
+  file-print "----------------------------------------"
   file-print "CONFIGS VISITED"
+  file-print "----------------------------------------"
   ask ants [
     file-show info-visited-configs
   ]
@@ -422,7 +429,7 @@ show-id?
 MONITOR
 301
 76
-546
+545
 121
 Frequencies
 table:to-list freq-table
@@ -447,7 +454,7 @@ INPUTBOX
 406
 266
 ant-num
-50
+100
 1
 0
 Number
@@ -513,7 +520,7 @@ SWITCH
 59
 display-in-3d?
 display-in-3d?
-0
+1
 1
 -1000
 
