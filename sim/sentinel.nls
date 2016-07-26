@@ -64,54 +64,61 @@ to-report validate-report [problem-type ant-data ant-sat an-ant]
   let all-sat-problems table:get global-sat-ants-detecting ant-sat
   ;get specific list for this problem
   let ant-detection-list (item ([my-config-index] of an-ant) all-sat-problems)
+  
+  ;if this sat has not reported this problem yet, we use it. This means that we will only
+  ;drop pheromones if it is the first time. This may not be the right move. Possibly change this.
   if not member? ([who] of an-ant) ant-detection-list [
     set ant-detection-list lput [who] of an-ant ant-detection-list
-    if length ant-detection-list >= SWARM-NUMBER [
+    ifelse length ant-detection-list >= SWARM-NUMBER [
       ;swarm detected. flush swarm queue for this problem. increment problem detected count. remove problem.
       set ant-detection-list []
       set found-problem-count found-problem-count + 1
       remove-problem ant-sat problem-type
+      set all-sat-problems replace-item ([my-config-index] of an-ant) all-sat-problems ant-detection-list
+      table:put global-sat-ants-detecting ant-sat all-sat-problems
     ]
-    set all-sat-problems replace-item ([my-config-index] of an-ant) all-sat-problems ant-detection-list
-    table:put global-sat-ants-detecting ant-sat all-sat-problems
-  ]
-  
-  ;Keep track of all nearby sats so we don't overload them with pheromones.
-  let sats-touched (list ant-sat)
-  ;show ant-data
-  foreach ant-data [
-    let a-gps ?
-    let a-lat item 0 a-gps
-    let a-long item 1 a-gps
-    
-    request-highlighting (list problem-type a-lat a-long)
-    ; to-do counter will increase for every hit.
-    ;highlight-report a-lat a-long
-    let nearby-sats []
-    ;Nearby sats must be close-enough, not yet touched, and have this configuration.
-    ask sats with [(get-dist a-gps (list lat long) < search-radius)
-               and (not member? self sats-touched)
-               and (member? problem-type available-configs)] [
-      set nearby-sats lput self nearby-sats
-      set sats-touched lput self sats-touched
-    ]
-    foreach nearby-sats [
-      let sentinel-set (turtle-set)
-      ;find all sentinels with access to this satellite.
-      ask my-environment [
-        set sentinel-set get-sentinels-with ? 
-      ]
-      ;if there's at least one sentinel, drop pheromones at the propoer config.
-      if any? sentinel-set [
-        ask one-of sentinel-set [
-          drop-pheromones-at ? problem-type pheromone-concentration
+    [
+      ;Keep track of all nearby sats so we don't overload them with pheromones.
+      let sats-touched (list ant-sat)
+      
+      ;for each detection in the ant-data, we place a marker and try to locate nearby sats.
+      foreach ant-data [
+        let a-gps ?
+        let a-lat item 0 a-gps
+        let a-long item 1 a-gps
+        
+        request-highlighting (list problem-type a-lat a-long)
+        ; to-do counter will increase for every hit.
+        ;highlight-report a-lat a-long
+        let nearby-sats []
+        ;Nearby sats must be close-enough, not yet touched, and have this configuration.
+        ask sats with [(get-dist a-gps (list lat long) < search-radius)
+                 and (not member? self sats-touched)
+                 and (member? problem-type available-configs)] [
+          set nearby-sats lput self nearby-sats
+          set sats-touched lput self sats-touched
+        ]
+        foreach nearby-sats [
+          let sentinel-set (turtle-set)
+          ;find all sentinels with access to this satellite.
+          ask my-environment [
+            set sentinel-set get-sentinels-with ? 
+          ]
+          ;if there's at least one sentinel, drop pheromones at the propoer config.
+          if any? sentinel-set [
+            ask one-of sentinel-set [
+              drop-pheromones-at ? problem-type pheromone-concentration
+            ]
+          ]
         ]
       ]
+      ;whether we've reached the swarm limit or not, we update the global table.
+      set all-sat-problems replace-item ([my-config-index] of an-ant) all-sat-problems ant-detection-list
+      table:put global-sat-ants-detecting ant-sat all-sat-problems
+      report pheromone-concentration
     ]
   ]
-  ;how should we validate?
-  
-  report pheromone-concentration
+  report 0
 end
 
 ;args: a list containing [type, lat, long]
