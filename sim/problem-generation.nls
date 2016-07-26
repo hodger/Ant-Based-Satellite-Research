@@ -1,11 +1,15 @@
 globals [ all-problems
           global-problem-removal-map
           found-problem-count
-          missed-problem-count ]
+          missed-problem-count 
+          never-discovered-count ]
 
 to setup-problems
   set all-problems table:make
   set global-problem-removal-map table:make
+  set found-problem-count 0
+  set missed-problem-count 0
+  set never-discovered-count 0
   ask sats [
     table:put all-problems who []
   ]
@@ -82,8 +86,14 @@ to refresh-problems
           set new-problems remove current-problem new-problems
           
           ;flush the ant-swarm queue for that problem, increment missed problem.
-          table:put global-sat-ants-detecting sat-num (replace-item ? (table:get global-sat-ants-detecting sat-num) [])
-          set missed-problem-count missed-problem-count + 1
+          ifelse table:has-key? global-sat-ants-detecting sat-num [
+            table:put global-sat-ants-detecting sat-num (replace-item ? (table:get global-sat-ants-detecting sat-num) [])
+            set missed-problem-count missed-problem-count + 1
+          ]
+          [
+            table:put global-sat-ants-detecting sat-num n-values (length [available-configs] of sat sat-num) [[]]
+            set never-discovered-count never-discovered-count + 1
+          ]
         ]
       ]
       ;set our static lists to the adjusted dynamic lists

@@ -27,11 +27,11 @@ environments-own [
 to setup-environment
   set number-pheromones 2
   ;set total-pheromones array:from-list (n-values number-pheromones [0])
-  set EVAPORATION-TIME 10
+  set EVAPORATION-TIME 15
   set EVAPORATION-VALUE 5
   
   ;what do we consider a swarm?
-  set SWARM-NUMBER 5
+  set SWARM-NUMBER 3
   set MAX-PHEROMONE-VALUE 100
   
   ;copy grounds to a temporary agentset

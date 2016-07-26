@@ -133,7 +133,24 @@ to go
           go-ant
         ]
         [
-          if not is-waiting? [
+          ifelse is-waiting? [
+            let time-spent-waiting time-numerical - time-waiting
+            if time-spent-waiting >= max-wait-time [
+              ;abort wait!
+              set is-waiting? false
+              set is-dispatched? false
+              set time-waiting NO_VAL
+              set time-dispatched NO_VAL
+              ask my-sentinel [
+                remove-ant myself [my-sat] of myself
+              ]
+              set my-sat-2d NO_VAL
+              set my-sentinel NO_VAL
+              set my-sat NO_VAL
+              move-ant
+            ]
+          ]
+          [
             move-ant ;relies on pheromone values
           ]
         ]
@@ -185,14 +202,15 @@ to communicate-down
               report-ant
               set results []
             ]
+            let travel-time time-numerical - time-dispatched
             ; he has a chance to return
-            if time-numerical - time-dispatched > min-time-to-return [
+            if travel-time > min-time-to-return [
               ; to-do
               ; implement some kind of smarter solution than flipping a coin
-              if random 2 = 1 [
+              if travel-time > max-time-to-return or random 2 = 1 [
                 set is-dispatched? false
                 set is-waiting? false
-                set time-dispatched time-numerical
+                set time-dispatched NO_VAL
                 ask my-sentinel [
                   remove-ant myself current-sat
                 ]
@@ -415,7 +433,7 @@ table:to-list freq-table
 INPUTBOX
 298
 280
-453
+405
 340
 min-config-types
 3
@@ -425,20 +443,20 @@ Number
 
 INPUTBOX
 298
-212
-453
-272
+206
+406
+266
 ant-num
-10
+50
 1
 0
 Number
 
 INPUTBOX
-462
-282
-617
-342
+428
+281
+546
+341
 min-problem-duration
 50
 1
@@ -446,10 +464,10 @@ min-problem-duration
 Number
 
 INPUTBOX
-462
-346
-617
-406
+428
+345
+546
+405
 max-problem-duration
 100
 1
@@ -457,10 +475,10 @@ max-problem-duration
 Number
 
 TEXTBOX
-467
-246
-617
-278
+418
+243
+568
+275
 Please input these values in ticks.
 13
 95.0
@@ -469,10 +487,10 @@ Please input these values in ticks.
 INPUTBOX
 299
 346
-454
+404
 406
 num-problem-types
-18
+10
 1
 0
 Number
@@ -495,7 +513,7 @@ SWITCH
 59
 display-in-3d?
 display-in-3d?
-1
+0
 1
 -1000
 
@@ -566,6 +584,39 @@ Probably don't touch this ->
 11
 0.0
 1
+
+MONITOR
+569
+30
+670
+75
+Problems Found
+found-problem-count
+17
+1
+11
+
+MONITOR
+568
+77
+671
+122
+Problems Missed
+missed-problem-count
+17
+1
+11
+
+MONITOR
+568
+126
+672
+171
+Non-Discoverable
+never-discovered-count
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?

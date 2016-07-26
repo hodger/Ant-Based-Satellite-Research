@@ -18,6 +18,8 @@ ants-own [ my-sat-2d
            
            is-waiting?
            
+           time-waiting
+           
            time-dispatched 
            
            previous-sentinel
@@ -177,13 +179,14 @@ to choose-config
   
   set info-visited-configs lput my-config info-visited-configs
   
-  show (word "ant " self " chose config " table:get problem-identifiers my-config " of " my-sat)
+  ;show (word "ant " self " chose config " table:get problem-identifiers my-config " of " my-sat)
   
   ;update the ant queues of our sat.
   let existing-queue table:get [ant-queues] of my-sentinel ([who] of my-sat)
   let new-queue lput who existing-queue
   table:put ([ant-queues] of my-sentinel) ([who] of my-sat) new-queue
   set is-waiting? true
+  set time-waiting time-numerical
 end
 
 to report-ant
