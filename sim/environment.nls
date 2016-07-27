@@ -1,8 +1,6 @@
 globals [ number-pheromones ; number, how many pheromone types
           pheromone-time-map
           global-pheromone-map
-          EVAPORATION-TIME
-          EVAPORATION-VALUE
           MAX-PHEROMONE-VALUE
           ;total-pheromones 
           
@@ -14,8 +12,6 @@ globals [ number-pheromones ; number, how many pheromone types
           
           problem-identifiers ; map, problem id -> string identifier ('A', 'B', ... ,'AA')
           highlight-queue
-          
-          SWARM-NUMBER
           ] 
 
 breed [ environments environment ]
@@ -27,11 +23,8 @@ environments-own [
 to setup-environment
   set number-pheromones 2
   ;set total-pheromones array:from-list (n-values number-pheromones [0])
-  set EVAPORATION-TIME 15
-  set EVAPORATION-VALUE 5
-  
+ 
   ;what do we consider a swarm?
-  set SWARM-NUMBER 3
   set MAX-PHEROMONE-VALUE 100
   
   ;copy grounds to a temporary agentset

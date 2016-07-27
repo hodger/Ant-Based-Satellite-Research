@@ -153,7 +153,7 @@ to setup-sats
       set freq-count freq-count + 1 
     ]
     set cone-dist circ-radius / scale
-    set cone-angle 10
+    set cone-angle 15
     set connected-grounds []
     
     ;scale data points

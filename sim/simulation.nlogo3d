@@ -127,7 +127,10 @@ to go
       ;update-previous-values
     ]
     if ticks > pre-ant-ticks [
-      delegate-problems ;possibility to add new problems
+      if time-numerical - last-problem-spawn-time >= problem-spawn-rate [
+        spawn-problems ;add new problems
+        set last-problem-spawn-time time-numerical
+      ]
       ask ants [
         ifelse is-dispatched? [
           go-ant
@@ -316,10 +319,10 @@ ticks
 30.0
 
 INPUTBOX
-19
-206
-152
-266
+20
+173
+77
+233
 satnum
 50
 1
@@ -344,10 +347,10 @@ NIL
 1
 
 SWITCH
-21
-357
-130
-390
+16
+453
+125
+486
 show-name?
 show-name?
 1
@@ -355,10 +358,10 @@ show-name?
 -1000
 
 SWITCH
-21
-397
-130
-430
+16
+493
+125
+526
 show-height?
 show-height?
 1
@@ -383,10 +386,10 @@ NIL
 0
 
 INPUTBOX
-201
-271
-261
-331
+162
+173
+222
+233
 tick-frac
 0.001
 1
@@ -394,10 +397,10 @@ tick-frac
 Number
 
 INPUTBOX
-157
-206
-291
-266
+83
+173
+156
+233
 groundnum
 5
 1
@@ -405,10 +408,10 @@ groundnum
 Number
 
 SWITCH
-137
-357
-241
-390
+132
+453
+236
+486
 show-coor?
 show-coor?
 1
@@ -416,10 +419,10 @@ show-coor?
 -1000
 
 SWITCH
-137
-397
-241
-430
+132
+493
+236
+526
 show-id?
 show-id?
 1
@@ -429,7 +432,7 @@ show-id?
 MONITOR
 301
 76
-545
+508
 121
 Frequencies
 table:to-list freq-table
@@ -438,10 +441,10 @@ table:to-list freq-table
 11
 
 INPUTBOX
-298
-280
-405
-340
+277
+225
+384
+285
 min-config-types
 3
 1
@@ -449,21 +452,21 @@ min-config-types
 Number
 
 INPUTBOX
-298
-206
-406
-266
+21
+283
+118
+343
 ant-num
-100
+30
 1
 0
 Number
 
 INPUTBOX
-428
-281
-546
-341
+446
+323
+565
+383
 min-problem-duration
 50
 1
@@ -471,31 +474,21 @@ min-problem-duration
 Number
 
 INPUTBOX
-428
-345
-546
-405
+569
+323
+687
+383
 max-problem-duration
 100
 1
 0
 Number
 
-TEXTBOX
-418
-243
-568
-275
-Please input these values in ticks.
-13
-95.0
-0
-
 INPUTBOX
-299
-346
-404
-406
+446
+260
+564
+320
 num-problem-types
 10
 1
@@ -505,7 +498,7 @@ Number
 MONITOR
 301
 27
-544
+507
 72
 NIL
 table:to-list global-config-pheromones
@@ -527,7 +520,7 @@ display-in-3d?
 MONITOR
 302
 126
-547
+509
 171
 NIL
 table:to-list global-problem-removal-map
@@ -553,50 +546,30 @@ NIL
 0
 
 TEXTBOX
-23
-338
-173
-356
+18
+434
+168
+452
 3D Satellite Label Settings:
 12
 95.0
 0
 
 TEXTBOX
-24
-172
-139
-202
-How many sats to load from csv:
-12
-0.0
-1
-
-TEXTBOX
-161
-172
-272
-202
-How many grounds to load from csv:
-12
-0.0
-1
-
-TEXTBOX
-53
-290
-203
-308
-Probably don't touch this ->
+225
+177
+375
+195
+<- Probably don't touch this
 11
 0.0
 1
 
 MONITOR
-569
-30
-670
-75
+553
+78
+654
+123
 Problems Found
 found-problem-count
 17
@@ -604,10 +577,10 @@ found-problem-count
 11
 
 MONITOR
-568
-77
-671
-122
+552
+125
+655
+170
 Problems Missed
 missed-problem-count
 17
@@ -615,15 +588,165 @@ missed-problem-count
 11
 
 MONITOR
-568
-126
-672
-171
+552
+174
+656
+219
 Non-Discoverable
 never-discovered-count
 17
 1
 11
+
+INPUTBOX
+446
+386
+565
+446
+n-problems-at-a-time
+1
+1
+0
+Number
+
+INPUTBOX
+569
+386
+688
+446
+problem-spawn-rate
+50
+1
+0
+Number
+
+TEXTBOX
+517
+242
+611
+260
+Problem Settings
+12
+0.0
+1
+
+MONITOR
+545
+13
+662
+58
+Problems Spawned
+global-problem-count
+17
+1
+11
+
+INPUTBOX
+123
+347
+226
+407
+max-time-to-return
+5
+1
+0
+Number
+
+INPUTBOX
+21
+347
+118
+407
+min-time-to-return
+2
+1
+0
+Number
+
+INPUTBOX
+124
+283
+226
+343
+max-wait-time
+30
+1
+0
+Number
+
+TEXTBOX
+84
+260
+155
+278
+Ant Controls
+12
+0.0
+1
+
+TEXTBOX
+285
+209
+379
+227
+Satellite Controls
+12
+0.0
+1
+
+TEXTBOX
+274
+302
+391
+320
+Pheromone Settings
+12
+0.0
+1
+
+INPUTBOX
+265
+382
+399
+442
+EVAPORATION-TIME
+15
+1
+0
+Number
+
+INPUTBOX
+265
+445
+399
+505
+EVAPORATION-VALUE
+2
+1
+0
+Number
+
+INPUTBOX
+265
+320
+399
+380
+pheromone-concentration
+5
+1
+0
+Number
+
+INPUTBOX
+566
+260
+688
+320
+SWARM-NUMBER
+3
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
