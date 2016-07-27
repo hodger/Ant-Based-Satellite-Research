@@ -261,6 +261,10 @@ to check-display-setting
   ]
 end
 
+to-report problem-found-rate
+  report found-problem-count / (global-problem-count - never-discovered-count)
+end
+
 to end-simulation
   set END-SIM? true
   if file-exists? "end-of-sim-report.txt" [
@@ -1095,6 +1099,89 @@ NetLogo 3D 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="RESULTS" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>ticks = 4000</exitCondition>
+    <metric>problem-found-rate</metric>
+    <enumeratedValueSet variable="EVAPORATION-TIME">
+      <value value="5"/>
+      <value value="10"/>
+      <value value="15"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="display-in-3d?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="show-height?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pheromone-concentration">
+      <value value="1"/>
+      <value value="2"/>
+      <value value="5"/>
+      <value value="10"/>
+      <value value="15"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="ant-num" first="1" step="5" last="100"/>
+    <steppedValueSet variable="max-time-to-return" first="4" step="1" last="15"/>
+    <enumeratedValueSet variable="show-name?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-problem-duration">
+      <value value="100"/>
+      <value value="150"/>
+      <value value="175"/>
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-wait-time">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="show-id?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="min-problem-duration">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="min-time-to-return">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="satnum">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="n-problems-at-a-time">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="EVAPORATION-VALUE">
+      <value value="2"/>
+      <value value="5"/>
+      <value value="10"/>
+      <value value="15"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="problem-spawn-rate">
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="show-coor?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="min-config-types">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="tick-frac">
+      <value value="0.001"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="num-problem-types" first="5" step="1" last="10"/>
+    <enumeratedValueSet variable="SWARM-NUMBER">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="groundnum">
+      <value value="5"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
