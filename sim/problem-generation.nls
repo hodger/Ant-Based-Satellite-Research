@@ -4,7 +4,15 @@ globals [ all-problems
           missed-problem-count 
           never-discovered-count 
           last-problem-spawn-time
-          global-problem-count ]
+          global-problem-count 
+          problem-discovery-times 
+          problem-active? ]
+
+breed [current-problems current-problem]
+
+current-problems-own [
+  my-sat-2d 
+]
 
 to setup-problems
   set all-problems table:make
@@ -14,9 +22,18 @@ to setup-problems
   set never-discovered-count 0
   set last-problem-spawn-time 0
   set global-problem-count 0
-  
+  set problem-discovery-times []
+  set problem-active? false
   ask sats [
     table:put all-problems who []
+  ]
+  create-current-problems 1 [
+    set color violet
+    set shape "cow"
+    set zcor 49
+    set xcor 0
+    set ycor 0
+    set my-sat-2d NO_VAL
   ]
 end
 
@@ -74,6 +91,11 @@ to spawn-problems
       let problem-choice one-of remaining-problems
       create-problem current-sat problem-choice
       set problem-count problem-count + 1
+      if not spawn-problems-continuously? [
+        ask one-of current-problems [
+          set my-sat-2d [my-sat-2d] of current-sat  
+        ] 
+      ]
     ]
   ]
 end

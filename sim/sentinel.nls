@@ -22,7 +22,7 @@ sentinels-own [ my-ground  ;ground
                 pheromones ]
 
 to setup-sentinel-network
-  ; to-do track pheromones 
+  ; to-do track pheromones
   set search-radius 10
 end
 
@@ -48,9 +48,14 @@ to setup-sentinel [a-ground]
 end
 
 to-report validate-report [problem-type ant-data ant-sat an-ant]
-  if member? problem-type (table:get contexts [who] of ant-sat) [
-    show ("Problem accounted for.")
-    report 0
+  ;if member? problem-type (table:get contexts [who] of ant-sat) [
+  ;  show ("Problem accounted for.")
+  ;  report 0
+  ;]
+  
+  if not member? problem-type [my-problems] of ant-sat [
+    ;we ignore this problem.
+    report 0 
   ]
   
   show (word "problem reported by " an-ant)
@@ -66,11 +71,15 @@ to-report validate-report [problem-type ant-data ant-sat an-ant]
     set ant-detection-list lput [who] of an-ant ant-detection-list
     ifelse length ant-detection-list >= SWARM-NUMBER [
       ;swarm detected. flush swarm queue for this problem. increment problem detected count. remove problem.
-      set ant-detection-list []
+      set ant-detection-list [];
       set found-problem-count found-problem-count + 1
       remove-problem ant-sat problem-type
       set all-sat-problems replace-item ([my-config-index] of an-ant) all-sat-problems ant-detection-list
       table:put global-sat-ants-detecting [who] of ant-sat all-sat-problems
+      if not spawn-problems-continuously? [
+        set problem-active? false
+        set problem-discovery-times lput (time-numerical - last-problem-spawn-time) problem-discovery-times
+      ]
     ]
     [
       ;Keep track of all nearby sats so we don't overload them with pheromones.

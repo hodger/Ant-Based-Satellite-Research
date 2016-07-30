@@ -56,7 +56,7 @@ to setup-ground
     set freq item 3 csv-data
     
     set cone-dist 50
-    set cone-angle 10
+    set cone-angle 5
     set connected-sats []
     set last-check time-numerical
     set ground-ID random 10000

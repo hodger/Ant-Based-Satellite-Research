@@ -18,7 +18,9 @@ globals [ scale tick-frac-of-min
           time time-numerical
           pre-ant-ticks
           END-SIM?
-          last-display-setting ]
+          last-display-setting
+          last-communication-map
+          silence-threshold ]
 
 directed-link-breed [uplinks uplink]
 directed-link-breed [downlinks downlink]
@@ -35,11 +37,16 @@ to setup
   set earth-rot-time (1437)
   set comm-buffer 2
   set pre-ant-ticks 500
+  set silence-threshold 30
   random-seed 586878
 
   set freq-table table:make
   set sats-by-height table:make
+  set last-communication-map table:make
   setup-sats
+  ask sats [
+    table:put last-communication-map who 0
+  ]
   setup-ground
   generate-grounds
 
@@ -83,12 +90,34 @@ to go
     set time-numerical get-time-numerical
     ask uplinks [ ;act on active uplinks
       set color red
+      table:put last-communication-map [who] of end2 time-numerical
       communicate-up ;here ants are possibly dispatched.
-    ]
-    ask downlinks [
-      set color green
       communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
     ]
+
+    ;force communication if it has been too long.
+    foreach table:keys last-communication-map [
+      if time-numerical - table:get last-communication-map ? > silence-threshold [
+        ask sat ? [
+          ;temporary link between a ground station.
+          let chosen-ground one-of grounds with [ freq = [freq] of myself and table:has-key? [ant-queues] of my-sentinel [who] of myself ]
+          if chosen-ground != nobody [
+            create-uplink-from chosen-ground [
+              ;show (word "forcing communication between " end1 " and " end2)
+              table:put last-communication-map [who] of end2 time-numerical
+              communicate-up
+              communicate-down
+              die
+            ]
+          ]
+        ]
+      ]
+    ]
+
+    ;ask downlinks [
+    ;  set color green
+    ;  communicate-down ;here new pheromones are possibly added. Sentinel totals are updated.
+    ;]
     if ticks > pre-ant-ticks [
       highlight-reports
     ]
@@ -117,7 +146,9 @@ to go
     ]
     ask environments [
       if ticks > pre-ant-ticks [
-        refresh-problems ;remove old problems
+        if spawn-problems-continuously? [
+          refresh-problems ;remove old problems
+        ]
         decay-pheromones ;take away pheromones
         update ;fix the sentinel sums
       ]
@@ -127,9 +158,24 @@ to go
       ;update-previous-values
     ]
     if ticks > pre-ant-ticks [
-      if time-numerical - last-problem-spawn-time >= problem-spawn-rate [
-        spawn-problems ;add new problems
-        set last-problem-spawn-time time-numerical
+      ifelse spawn-problems-continuously? [
+        if time-numerical - last-problem-spawn-time >= problem-spawn-rate [
+          spawn-problems ;add new problems
+          set last-problem-spawn-time time-numerical
+        ]
+      ]
+      [
+        if not problem-active? [
+          spawn-problems
+          set last-problem-spawn-time time-numerical
+          set problem-active? true
+        ]
+      ]
+      ask one-of current-problems [
+        if my-sat-2d != NO_VAL [
+          set xcor [xcor] of my-sat-2d
+          set ycor [ycor] of my-sat-2d
+        ]
       ]
       ask ants [
         ifelse is-dispatched? [
@@ -193,10 +239,10 @@ end
 
 ;downlink (ground listen) procedure
 to communicate-down
-  let current-sat end1
-  if [participating] of [my-sentinel] of end2
-      and (table:has-key? [ant-queues] of [my-sentinel] of end2 [who] of end1) [
-    let ant-list table:get [ant-queues] of [my-sentinel] of end2 [who] of end1
+  let current-sat end2
+  if [participating] of [my-sentinel] of end1
+      and (table:has-key? [ant-queues] of [my-sentinel] of end1 [who] of end2) [
+    let ant-list table:get [ant-queues] of [my-sentinel] of end1 [who] of end2
     if length ant-list > 0 [
       foreach ant-list [
         ask ant ? [
@@ -230,6 +276,45 @@ to communicate-down
   ]
 end
 
+;;downlink (ground listen) procedure
+;to communicate-down
+;  let current-sat end1
+;  if [participating] of [my-sentinel] of end2
+;      and (table:has-key? [ant-queues] of [my-sentinel] of end2 [who] of end1) [
+;    let ant-list table:get [ant-queues] of [my-sentinel] of end2 [who] of end1
+;    if length ant-list > 0 [
+;      foreach ant-list [
+;        ask ant ? [
+;          if is-dispatched? [
+;            if length results > 0 [
+;              report-ant
+;              set results []
+;            ]
+;            let travel-time time-numerical - time-dispatched
+;            ; he has a chance to return
+;            if travel-time > min-time-to-return [
+;              ; to-do
+;              ; implement some kind of smarter solution than flipping a coin
+;              if travel-time > max-time-to-return or random 2 = 1 [
+;                set is-dispatched? false
+;                set is-waiting? false
+;                set time-dispatched NO_VAL
+;                ask my-sentinel [
+;                  remove-ant myself current-sat
+;                ]
+;                ;wipe existing data
+;                set my-sat-2d NO_VAL
+;                set my-sentinel NO_VAL
+;                set my-sat NO_VAL
+;              ]
+;            ]
+;          ]
+;        ]
+;      ]
+;    ]
+;  ]
+;end
+
 to check-display-setting
   ifelse display-in-3d? [
     ask (turtle-set sats grounds) [
@@ -262,7 +347,7 @@ to check-display-setting
 end
 
 to-report problem-found-rate
-  report found-problem-count / (global-problem-count - never-discovered-count)
+  report found-problem-count / (found-problem-count + missed-problem-count)
 end
 
 to end-simulation
@@ -328,7 +413,7 @@ INPUTBOX
 77
 233
 satnum
-50
+100
 1
 0
 Number
@@ -461,7 +546,7 @@ INPUTBOX
 118
 343
 ant-num
-100
+35
 1
 0
 Number
@@ -472,7 +557,7 @@ INPUTBOX
 565
 383
 min-problem-duration
-99
+300
 1
 0
 Number
@@ -483,7 +568,7 @@ INPUTBOX
 687
 383
 max-problem-duration
-100
+301
 1
 0
 Number
@@ -494,7 +579,7 @@ INPUTBOX
 564
 320
 num-problem-types
-8
+5
 1
 0
 Number
@@ -570,10 +655,10 @@ TEXTBOX
 1
 
 MONITOR
-553
-78
-654
-123
+560
+72
+661
+117
 Problems Found
 found-problem-count
 17
@@ -581,10 +666,10 @@ found-problem-count
 11
 
 MONITOR
-552
-125
-655
-170
+559
+119
+662
+164
 Problems Missed
 missed-problem-count
 17
@@ -592,10 +677,10 @@ missed-problem-count
 11
 
 MONITOR
-552
-174
-656
-219
+559
+168
+663
+213
 Non-Discoverable
 never-discovered-count
 17
@@ -619,16 +704,16 @@ INPUTBOX
 688
 446
 problem-spawn-rate
-50
+100
 1
 0
 Number
 
 TEXTBOX
-517
-242
-611
-260
+711
+104
+805
+122
 Problem Settings
 12
 0.0
@@ -662,7 +747,7 @@ INPUTBOX
 118
 407
 min-time-to-return
-2
+3
 1
 0
 Number
@@ -714,7 +799,7 @@ INPUTBOX
 399
 442
 EVAPORATION-TIME
-10
+5
 1
 0
 Number
@@ -736,7 +821,7 @@ INPUTBOX
 399
 380
 pheromone-concentration
-25
+35
 1
 0
 Number
@@ -753,23 +838,34 @@ SWARM-NUMBER
 Number
 
 MONITOR
-672
-15
-794
-60
+677
+13
+799
+58
 Hit Percentage
 problem-found-rate
 17
 1
 11
 
+SWITCH
+446
+450
+689
+483
+spawn-problems-continuously?
+spawn-problems-continuously?
+0
+1
+-1000
+
 MONITOR
-670
-76
-759
-121
-Long Gone Ants
-count ants with [time-dispatched != NO_VAL and time-numerical - time-dispatched > 40] / ant-num
+678
+73
+827
+118
+Problem Discovery Times
+problem-discovery-times
 17
 1
 11
