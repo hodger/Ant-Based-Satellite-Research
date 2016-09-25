@@ -1,5 +1,5 @@
-# Ant-Based satellite cyber security research
-This is a NetLogo3D simulation for modeling cyber security networks in space systems, currently being developed at the
+# Ant-Based satellite cybersecurity research
+This is a NetLogo3D simulation for modeling cybersecurity networks in space systems, currently being developed at the
 University of North Dakota as a part of the OpenOrbiter small satellite development program.
 
 The simulation pulls data from the two spreadsheets to create satellites and ground stations. The satellite data is the most accurate and robust that I could find.
