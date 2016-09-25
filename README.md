@@ -1,4 +1,4 @@
-# Ant-Based satellite cybersecurity research
+# Ant-based satellite cybersecurity research
 This is a NetLogo3D simulation for modeling cybersecurity networks in space systems, currently being developed at the
 University of North Dakota as a part of the OpenOrbiter small satellite development program.
 
